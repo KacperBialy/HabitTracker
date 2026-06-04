@@ -1,0 +1,8 @@
+services:
+  habittracker:
+    image: habittracker
+    build:
+      context: .
+      dockerfile: HabitTracker/Dockerfile
+    ports:
+      - "8080:8080"
