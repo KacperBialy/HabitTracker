@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using HabitTracker.Modules.Users.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Configuration;
@@ -35,10 +37,32 @@ public static class DependencyInjection
 
                 options.SaveTokens = false;
                 options.GetClaimsFromUserInfoEndpoint = true;
+
+                options.Events.OnTokenValidated = async context =>
+                {
+                    var principal = context.Principal
+                        ?? throw new InvalidOperationException("No principal on validated token.");
+
+                    var request = MapToCreateUserRequest(principal);
+
+                    var users = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+                    await users.Create(request, context.HttpContext.RequestAborted);
+                };
             });
 
         services.AddAuthorization();
 
         return services;
+    }
+
+    private static CreateUserRequest MapToCreateUserRequest(ClaimsPrincipal principal)
+    {
+        var subject = principal.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? throw new InvalidOperationException("OIDC token is missing the 'sub' claim.");
+        var email = principal.FindFirstValue(ClaimTypes.Email)
+                    ?? throw new InvalidOperationException("OIDC token is missing the 'email' claim.");
+        var displayName = principal.FindFirstValue(ClaimTypes.Name) ?? email;
+
+        return new CreateUserRequest(subject, email, displayName);
     }
 }
