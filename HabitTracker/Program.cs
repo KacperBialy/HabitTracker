@@ -1,6 +1,8 @@
 using HabitTracker.Authentication;
 using HabitTracker.Authentication.Endpoints;
+using HabitTracker.Endpoints;
 using HabitTracker.Infrastructure;
+using HabitTracker.Modules.Tasks;
 using HabitTracker.Modules.Users;
 using HabitTracker.SharedKernel.Events;
 
@@ -12,6 +14,7 @@ builder.Services.AddOidcAuthentication(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 builder.Services.AddUsersModule(builder.Configuration);
+builder.Services.AddTasksModule(builder.Configuration);
 
 var app = builder.Build();
 
@@ -27,5 +30,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapTaskEndpoints();
 
 app.Run();

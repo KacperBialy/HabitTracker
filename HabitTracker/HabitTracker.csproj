@@ -25,6 +25,7 @@
     <ItemGroup>
       <ProjectReference Include="..\HabitTracker.Authentication\HabitTracker.Authentication.csproj" />
       <ProjectReference Include="..\Modules\Users\HabitTracker.Modules.Users\HabitTracker.Modules.Users.csproj" />
+      <ProjectReference Include="..\Modules\Tasks\HabitTracker.Modules.Tasks\HabitTracker.Modules.Tasks.csproj" />
       <ProjectReference Include="..\HabitTracker.SharedKernel\HabitTracker.SharedKernel.csproj" />
     </ItemGroup>
 

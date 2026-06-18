@@ -11,6 +11,7 @@ services:
         condition: service_healthy
     environment:
       - ConnectionStrings__Users=Host=postgres;Port=5432;Database=habittracker;Username=postgres;Password=postgres
+      - ConnectionStrings__Tasks=Host=postgres;Port=5432;Database=habittracker;Username=postgres;Password=postgres
 
   postgres:
     image: postgres:17

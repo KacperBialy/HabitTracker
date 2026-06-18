@@ -46,7 +46,11 @@ public static class DependencyInjection
                     var request = MapToCreateUserRequest(principal);
 
                     var users = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
-                    await users.Create(request, context.HttpContext.RequestAborted);
+                    var user = await users.Create(request, context.HttpContext.RequestAborted);
+
+                    // Carry the internal UserId on the cookie so downstream modules can scope data
+                    // by owner without a per-request lookup.
+                    ((ClaimsIdentity)principal.Identity!).AddClaim(new Claim("uid", user.Id.ToString()));
                 };
             });
 

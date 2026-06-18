@@ -1,7 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\HabitTracker.Modules.Users.Contracts\HabitTracker.Modules.Users.Contracts.csproj" />
+    <ProjectReference Include="..\HabitTracker.Modules.Tasks.Contracts\HabitTracker.Modules.Tasks.Contracts.csproj" />
     <ProjectReference Include="..\..\..\HabitTracker.SharedKernel\HabitTracker.SharedKernel.csproj" />
   </ItemGroup>
 
@@ -23,5 +22,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>
