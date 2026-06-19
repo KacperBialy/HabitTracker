@@ -12,6 +12,7 @@ Accepted; to change a decision, write a new ADR that supersedes the old one.
 | [0004](0004-in-process-domain-events.md) | In-process, handler-based domain events | Accepted |
 | [0005](0005-tasks-uses-opaque-ownerid.md) | Tasks owns work by opaque `Guid ownerId`, not `UserId` | Accepted |
 | [0006](0006-time-logging-inside-tasks.md) | Manual time logging lives inside the Tasks module | Accepted |
+| [0007](0007-http-endpoints-in-host.md) | HTTP endpoints live in the host, not in modules | Accepted |
 
 ## Format
 
