@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF2DC59F-CB76-4ECC-82B8-860BF8F83EA0}"
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
+		CLAUDE.md = CLAUDE.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabitTracker.Authentication", "HabitTracker.Authentication\HabitTracker.Authentication.csproj", "{FBC38D0D-B44A-4521-8C87-7DA5DF4C759D}"
@@ -12,6 +13,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{CA253913-39DE-BFD0-C9A3-4B7EC6FBDF17}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Users", "Users", "{6E738700-F19F-83EF-9B5F-3C8900D73B86}"
+	ProjectSection(SolutionItems) = preProject
+		Modules\Users\README.md = Modules\Users\README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabitTracker.Modules.Users.Contracts", "Modules\Users\HabitTracker.Modules.Users.Contracts\HabitTracker.Modules.Users.Contracts.csproj", "{F87893F9-D333-48BF-9BC2-3BD77EF6B0A2}"
 EndProject
@@ -20,6 +24,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabitTracker.SharedKernel", "HabitTracker.SharedKernel\HabitTracker.SharedKernel.csproj", "{27FDA75D-B2EA-444F-8D2E-308DB4733DE6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tasks", "Tasks", "{BF79447E-4B20-FE77-8600-0CC80B3109DA}"
+	ProjectSection(SolutionItems) = preProject
+		Modules\Tasks\README.md = Modules\Tasks\README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabitTracker.Modules.Tasks.Contracts", "Modules\Tasks\HabitTracker.Modules.Tasks.Contracts\HabitTracker.Modules.Tasks.Contracts.csproj", "{045049D5-3F00-40D9-B586-6246082D0AC9}"
 EndProject
