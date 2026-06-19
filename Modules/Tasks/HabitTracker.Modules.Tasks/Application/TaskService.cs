@@ -1,4 +1,6 @@
 using HabitTracker.Modules.Tasks.Contracts;
+using HabitTracker.Modules.Tasks.Contracts.Models;
+using HabitTracker.Modules.Tasks.Contracts.Requests;
 using HabitTracker.Modules.Tasks.Domain;
 using HabitTracker.Modules.Tasks.Persistence;
 using Microsoft.EntityFrameworkCore;

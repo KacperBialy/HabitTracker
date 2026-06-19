@@ -2,7 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using HabitTracker.IntegrationTests.Configurations;
-using HabitTracker.Modules.Tasks.Contracts;
+using HabitTracker.Modules.Tasks.Contracts.Models;
+using HabitTracker.Modules.Tasks.Contracts.Requests;
 
 namespace HabitTracker.IntegrationTests;
 
@@ -19,7 +20,7 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
         create.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await create.Content.ReadFromJsonAsync<TaskDto>();
         created.Should().NotBeNull();
-        created!.Name.Should().Be("Drink water");
+        created.Name.Should().Be("Drink water");
         created.OwnerId.Should().Be(owner);
 
         var list = await client.GetFromJsonAsync<List<TaskDto>>("/api/tasks");
@@ -53,7 +54,7 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
         var created = await create.Content.ReadFromJsonAsync<TaskDto>();
         created.Should().NotBeNull();
 
-        var delete = await client.DeleteAsync($"/api/tasks/{created!.Id}");
+        var delete = await client.DeleteAsync($"/api/tasks/{created.Id}");
 
         delete.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
@@ -73,7 +74,7 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
         created.Should().NotBeNull();
 
         var delete = await factory.ClientFor(other)
-            .DeleteAsync($"/api/tasks/{created!.Id}");
+            .DeleteAsync($"/api/tasks/{created.Id}");
 
         delete.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

@@ -2,7 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using HabitTracker.IntegrationTests.Configurations;
-using HabitTracker.Modules.Tasks.Contracts;
+using HabitTracker.Modules.Tasks.Contracts.Models;
+using HabitTracker.Modules.Tasks.Contracts.Requests;
 
 namespace HabitTracker.IntegrationTests;
 
@@ -105,7 +106,7 @@ public sealed class TimeLogEndpointsTests(ApiFactory factory)
         var created = await log.Content.ReadFromJsonAsync<TimeLogDto>();
         created.Should().NotBeNull();
 
-        var delete = await client.DeleteAsync($"/api/tasks/{task.Id}/timelogs/{created!.Id}");
+        var delete = await client.DeleteAsync($"/api/tasks/{task.Id}/timelogs/{created.Id}");
         delete.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var list = await client.GetFromJsonAsync<List<TimeLogDto>>($"/api/tasks/{task.Id}/timelogs");
@@ -127,7 +128,7 @@ public sealed class TimeLogEndpointsTests(ApiFactory factory)
         var created = await log.Content.ReadFromJsonAsync<TimeLogDto>();
         created.Should().NotBeNull();
 
-        var delete = await client.DeleteAsync($"/api/tasks/{taskB.Id}/timelogs/{created!.Id}");
+        var delete = await client.DeleteAsync($"/api/tasks/{taskB.Id}/timelogs/{created.Id}");
         delete.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var list = await client.GetFromJsonAsync<List<TimeLogDto>>($"/api/tasks/{taskA.Id}/timelogs");
@@ -147,7 +148,7 @@ public sealed class TimeLogEndpointsTests(ApiFactory factory)
         created.Should().NotBeNull();
 
         var delete = await factory.ClientFor(other)
-            .DeleteAsync($"/api/tasks/{task.Id}/timelogs/{created!.Id}");
+            .DeleteAsync($"/api/tasks/{task.Id}/timelogs/{created.Id}");
         delete.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var ownerList = await factory.ClientFor(owner)

@@ -1,5 +1,6 @@
 using HabitTracker.Infrastructure;
 using HabitTracker.Modules.Tasks.Contracts;
+using HabitTracker.Modules.Tasks.Contracts.Requests;
 
 namespace HabitTracker.Endpoints;
 
@@ -40,6 +41,12 @@ public static class TaskEndpoints
 
         group.MapGet("/{taskId:guid}/timelogs", async (Guid taskId, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
             Results.Ok(await timeLogs.ListTimeLogs(http.User.GetUserId(), new TaskId(taskId), ct)));
+
+        group.MapGet("/timelogs/aggregates", async (int? year, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+            Results.Ok(await timeLogs.GetYearAggregates(http.User.GetUserId(), year, ct)));
+
+        group.MapGet("/timelogs/aggregates/{date}", async (DateOnly date, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+            Results.Ok(await timeLogs.GetDayEntries(http.User.GetUserId(), date, ct)));
 
         group.MapDelete("/{taskId:guid}/timelogs/{logId:guid}", async (Guid taskId, Guid logId, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
         {

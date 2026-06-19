@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HabitTracker.Modules.Users.Contracts;
+using HabitTracker.Modules.Users.Contracts.Requests;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Configuration;

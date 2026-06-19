@@ -1,4 +1,4 @@
-namespace HabitTracker.Modules.Users.Contracts;
+namespace HabitTracker.Modules.Users.Contracts.Models;
 
 public sealed record UserDto(
     UserId Id,

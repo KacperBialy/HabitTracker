@@ -1,4 +1,4 @@
-namespace HabitTracker.Modules.Users.Contracts;
+namespace HabitTracker.Modules.Users.Contracts.Requests;
 
 public sealed record CreateUserRequest(
     string Subject,

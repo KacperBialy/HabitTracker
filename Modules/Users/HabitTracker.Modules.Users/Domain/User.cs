@@ -1,4 +1,5 @@
 using HabitTracker.Modules.Users.Contracts;
+using HabitTracker.Modules.Users.Contracts.Models;
 
 namespace HabitTracker.Modules.Users.Domain;
 

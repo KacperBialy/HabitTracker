@@ -1,3 +1,6 @@
+using HabitTracker.Modules.Tasks.Contracts.Models;
+using HabitTracker.Modules.Tasks.Contracts.Requests;
+
 namespace HabitTracker.Modules.Tasks.Contracts;
 
 public interface ITaskService
