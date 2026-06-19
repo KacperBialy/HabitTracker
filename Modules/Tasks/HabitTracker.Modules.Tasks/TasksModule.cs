@@ -20,6 +20,7 @@ public static class TasksModule
                 npgsql.MigrationsHistoryTable("__EFMigrationsHistory", TasksDbContext.Schema)));
 
         services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<ITaskTimeLogService, TaskTimeLogService>();
 
         return services;
     }

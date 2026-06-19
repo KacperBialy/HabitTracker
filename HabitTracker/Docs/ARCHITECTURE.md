@@ -12,7 +12,7 @@ project. The host composes the modules at startup; nothing else couples them. Ta
 | Module | Responsibility | Public surface | Persists? |
 |--------|----------------|----------------|-----------|
 | **Users** | Identity provisioned from OIDC login: register-on-first-login, update-on-subsequent-login. | `IUserService`, `UserDto`, `UserId`, `UserRegistered` event | Yes — `users` schema |
-| **Tasks** | Per-owner task list: create, list, rename, delete. | `ITaskService`, `TaskDto`, `TaskId` | Yes — `tasks` schema |
+| **Tasks** | Per-owner task list (create, list, rename, delete) plus manual time logging against a task for a given date. | `ITaskService`, `ITaskTimeLogService`, `TaskDto`, `TimeLogDto`, `TaskId`, `TimeLogId` | Yes — `tasks` schema |
 
 Supporting (non-module) projects:
 

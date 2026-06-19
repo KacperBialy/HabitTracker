@@ -30,6 +30,23 @@ public static class TaskEndpoints
             return deleted ? Results.NoContent() : Results.NotFound();
         });
 
+        group.MapPost("/{taskId:guid}/timelogs", async (Guid taskId, LogTimeRequest request, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+        {
+            var dto = await timeLogs.LogTime(http.User.GetUserId(), new TaskId(taskId), request, ct);
+            return dto is null
+                ? Results.NotFound()
+                : Results.Created($"/api/tasks/{taskId}/timelogs/{dto.Id}", dto);
+        });
+
+        group.MapGet("/{taskId:guid}/timelogs", async (Guid taskId, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+            Results.Ok(await timeLogs.ListTimeLogs(http.User.GetUserId(), new TaskId(taskId), ct)));
+
+        group.MapDelete("/{taskId:guid}/timelogs/{logId:guid}", async (Guid taskId, Guid logId, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+        {
+            var deleted = await timeLogs.DeleteTimeLog(http.User.GetUserId(), new TaskId(taskId), new TimeLogId(logId), ct);
+            return deleted ? Results.NoContent() : Results.NotFound();
+        });
+
         return endpoints;
     }
 }

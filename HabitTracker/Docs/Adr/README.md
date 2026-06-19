@@ -11,6 +11,7 @@ Accepted; to change a decision, write a new ADR that supersedes the old one.
 | [0003](0003-schema-per-module.md) | One Postgres schema and DbContext per module | Accepted |
 | [0004](0004-in-process-domain-events.md) | In-process, handler-based domain events | Accepted |
 | [0005](0005-tasks-uses-opaque-ownerid.md) | Tasks owns work by opaque `Guid ownerId`, not `UserId` | Accepted |
+| [0006](0006-time-logging-inside-tasks.md) | Manual time logging lives inside the Tasks module | Accepted |
 
 ## Format
 

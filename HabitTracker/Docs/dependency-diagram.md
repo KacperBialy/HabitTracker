@@ -38,13 +38,13 @@ graph TD
 | From → To | Mechanism | Notes |
 |-----------|-----------|-------|
 | Host → Users (impl) | `ProjectReference` | Host references impl **only** to call `AddUsersModule` for DI wiring. It still talks to the module through `IUserService`. |
-| Host → Tasks (impl) | `ProjectReference` | Same — for `AddTasksModule` + endpoint wiring against `ITaskService`. |
+| Host → Tasks (impl) | `ProjectReference` | Same — for `AddTasksModule` + endpoint wiring against `ITaskService` and `ITaskTimeLogService`. |
 | Host → Authentication | `ProjectReference` | `AddOidcAuthentication`, `MapAuthEndpoints`. |
 | Host → SharedKernel | `ProjectReference` | Host implements `IDomainEventDispatcher` (`Infrastructure/DomainEventDispatcher.cs`). |
 | **Authentication → Users.Contracts** | **Interface injection** (`IUserService.Create`) | The one cross-component call into a module. Contracts-only. → [auth-to-users.md](integrations/auth-to-users.md) |
 | Users (impl) → Users.Contracts | `ProjectReference` | A module references its own Contracts. |
 | Users (impl) → SharedKernel | Interface (`IDomainEventDispatcher`) | Publishes `UserRegistered`. |
-| Tasks (impl) → Tasks.Contracts | `ProjectReference` | Its own Contracts. |
+| Tasks (impl) → Tasks.Contracts | `ProjectReference` | Its own Contracts. Implements both `ITaskService` and `ITaskTimeLogService` — manual time logging lives **inside** Tasks (same `DbContext`/schema), so it adds no new cross-module edge. |
 | Tasks (impl) → SharedKernel | `ProjectReference` | Present per template; no events used yet. |
 | Users (impl) ⇢ SharedKernel (dotted) | **Domain event**, in-process | `UserRegistered` dispatched by the host's `DomainEventDispatcher` after `SaveChangesAsync`. **No subscriber today.** → [user-registered-event.md](integrations/user-registered-event.md) |
 
