@@ -44,4 +44,17 @@ public sealed class SpaAndSerializationTests(ApiFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         body.Should().Contain("<app-root>");
     }
+
+    [Fact]
+    public async Task LoginRouteFallsBackToTheShellNotTheOidcChallenge()
+    {
+        // /login is the Angular page; the OIDC challenge lives at /api/auth/login.
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/login");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        body.Should().Contain("<app-root>");
+    }
 }

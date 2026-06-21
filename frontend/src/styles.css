@@ -1,1 +1,78 @@
-/* You can add global styles to this file, and also import other style files */
+/* Self-hosted fonts (no Google Fonts CDN — same-origin, GDPR-safe). */
+@import "@fontsource/caveat/400.css";
+@import "@fontsource/caveat/600.css";
+@import "@fontsource/caveat/700.css";
+@import "@fontsource/kalam/300.css";
+@import "@fontsource/kalam/400.css";
+@import "@fontsource/kalam/700.css";
+@import "@fontsource/patrick-hand/400.css";
+
+@import "tailwindcss";
+
+/* ─── Sketch theme tokens (ported from the wireframe) ─────────────────
+   Exposed via @theme so they're also available as Tailwind utilities
+   (e.g. bg-paper, text-ink, font-hand) on future screens. */
+@theme {
+  --color-ink: #1a1a1a;
+  --color-ink-soft: #2b2b2b;
+  --color-pencil: #4a4a4a;
+  --color-paper: #fbf9f4;
+  --color-rule: #2b2b2b;
+  --color-muted: #8a8478;
+  --color-accent: #c0392b;
+  --color-note: #fff3a8;
+
+  --font-hand: "Kalam", "Patrick Hand", cursive;
+  --font-display: "Caveat", cursive;
+}
+
+body {
+  margin: 0;
+  background: #efece5;
+  font-family: var(--font-hand);
+  color: var(--color-ink);
+}
+
+/* ─── Reusable sketch primitives ─────────────────────────────────── */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+/* Hand-drawn box: irregular border radius gives the wobbly look */
+.box {
+  border: 1.6px solid var(--color-rule);
+  border-radius: 6px 8px 5px 9px / 7px 5px 8px 6px;
+  background: var(--color-paper);
+  position: relative;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1.6px solid var(--color-rule);
+  border-radius: 6px 9px 5px 8px / 8px 5px 9px 6px;
+  background: var(--color-paper);
+  font-family: var(--font-hand);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #f2efe7;
+}
+
+.btn.primary {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.btn.primary:hover {
+  background: #000;
+}

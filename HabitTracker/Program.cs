@@ -33,6 +33,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapMeEndpoints();
 app.MapTaskEndpoints();
 
 // SPA fallback: any non-API, non-file route returns the Angular shell and lets its router take over.

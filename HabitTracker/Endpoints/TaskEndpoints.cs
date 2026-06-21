@@ -8,7 +8,8 @@ public static class TaskEndpoints
 {
     public static IEndpointRouteBuilder MapTaskEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/tasks").RequireAuthorization();
+        var group = endpoints.MapGroup("/api/tasks")
+            .RequireAuthorization();
 
         group.MapPost("/", async (CreateTaskRequest request, ITaskService tasks, HttpContext http, CancellationToken ct) =>
         {

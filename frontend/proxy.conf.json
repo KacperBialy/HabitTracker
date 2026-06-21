@@ -1,7 +1,5 @@
 {
   "/api":                   { "target": "http://localhost:8080", "secure": false },
-  "/login":                 { "target": "http://localhost:8080", "secure": false },
-  "/logout":                { "target": "http://localhost:8080", "secure": false },
   "/signin-oidc":           { "target": "http://localhost:8080", "secure": false },
   "/signout-callback-oidc": { "target": "http://localhost:8080", "secure": false }
 }

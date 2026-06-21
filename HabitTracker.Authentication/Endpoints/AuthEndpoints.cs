@@ -11,11 +11,11 @@ public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/login", () => Results.Challenge(
+        endpoints.MapGet("/api/auth/login", () => Results.Challenge(
             new AuthenticationProperties { RedirectUri = "/" },
             [OpenIdConnectDefaults.AuthenticationScheme]));
 
-        endpoints.MapGet("/logout", () => Results.SignOut(
+        endpoints.MapGet("/api/auth/logout", () => Results.SignOut(
             new AuthenticationProperties { RedirectUri = "/" },
             [
                 CookieAuthenticationDefaults.AuthenticationScheme,
