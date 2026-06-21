@@ -26,10 +26,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapTaskEndpoints();
+
+// SPA fallback: any non-API, non-file route returns the Angular shell and lets its router take over.
+// Mapped last so it never shadows /api/* or the auth endpoints above.
+app.MapFallbackToFile("index.html");
 
 app.Run();
