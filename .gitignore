@@ -5,6 +5,7 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea
 .DS_Store
+.playwright-mcp
 
 # Angular build output served by the host (generated from frontend/ via `ng build`)
 /HabitTracker/wwwroot/

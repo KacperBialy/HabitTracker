@@ -26,11 +26,35 @@
   --font-display: "Caveat", cursive;
 }
 
+/* Step the root font up on bigger screens so all rem-based sizing scales. */
+html {
+  font-size: 16px;
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1920px) {
+  html {
+    font-size: 20px;
+  }
+}
+
 body {
   margin: 0;
   background: #efece5;
   font-family: var(--font-hand);
   color: var(--color-ink);
+}
+
+/* Centered app-shell width cap — keeps content a tight block on wide screens. */
+.shell {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
 }
 
 /* ─── Reusable sketch primitives ─────────────────────────────────── */
@@ -75,4 +99,33 @@ body {
 
 .btn.primary:hover {
   background: #000;
+}
+
+.btn.danger {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Box variants */
+.box.dashed {
+  border-style: dashed;
+}
+
+/* Timer ring */
+.ring {
+  transform: rotate(-90deg);
+  /* Tailwind's base layer leaves a 1px ring-shadow on bare <svg>; clear it
+     so the timer reads as a circle, not a framed box. */
+  box-shadow: none;
+}
+
+.ring .track {
+  stroke: rgba(0, 0, 0, 0.12);
+  fill: none;
+}
+
+.ring .prog {
+  stroke: var(--color-ink);
+  fill: none;
+  stroke-linecap: round;
 }
