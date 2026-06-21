@@ -3,6 +3,13 @@ USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 
+FROM node:22 AS frontend
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build -- --output-path /spa
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
@@ -19,4 +26,5 @@ RUN dotnet publish "./HabitTracker.csproj" -c $BUILD_CONFIGURATION -o /app/publi
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=frontend /spa/browser ./wwwroot
 ENTRYPOINT ["dotnet", "HabitTracker.dll"]
