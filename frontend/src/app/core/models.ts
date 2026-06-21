@@ -11,3 +11,12 @@ export interface DayEntry {
   taskName: string;
   minutes: number;
 }
+
+/** Mirrors TimeLogDto — logDate is an ISO YYYY-MM-DD string. */
+export interface TimeLog {
+  id: string;
+  taskId: string;
+  ownerId: string;
+  minutes: number;
+  logDate: string;
+}

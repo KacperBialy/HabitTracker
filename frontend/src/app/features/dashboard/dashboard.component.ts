@@ -5,6 +5,7 @@ import { TasksService } from '../../core/tasks.service';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
 import { NewTaskModalComponent } from './new-task-modal.component';
+import { LogTimeModalComponent, LogTimePayload } from './log-time-modal.component';
 
 interface TaskVm {
   id: string;
@@ -14,7 +15,7 @@ interface TaskVm {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [TimerRingComponent, TaskRowComponent, NewTaskModalComponent],
+  imports: [TimerRingComponent, TaskRowComponent, NewTaskModalComponent, LogTimeModalComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -23,6 +24,8 @@ export class DashboardComponent implements OnInit {
   protected readonly taskVms = signal<TaskVm[]>([]);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
+  protected readonly loggingTask = signal<TaskVm | null>(null);
+  protected readonly logError = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -56,8 +59,26 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  protected openLog(task: TaskVm): void {
+    this.logError.set('');
+    this.loggingTask.set(task);
+  }
+
+  protected logTime(payload: LogTimePayload): void {
+    const task = this.loggingTask();
+    if (!task) return;
+
+    this.tasks.logTime(task.id, payload.minutes, payload.logDate).subscribe({
+      next: () => {
+        this.loggingTask.set(null);
+        this.load();
+      },
+      error: () => this.logError.set('Could not save the entry. Please try again.'),
+    });
+  }
+
   /** Local date as YYYY-MM-DD for the day-aggregates endpoint. */
-  private today(): string {
+  today(): string {
     const now = new Date();
     const year = now.getFullYear();
     const month = `${now.getMonth() + 1}`.padStart(2, '0');

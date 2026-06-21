@@ -6,11 +6,19 @@ import { TasksService } from '../../core/tasks.service';
 import { Task, DayEntry } from '../../core/models';
 
 describe('DashboardComponent merge', () => {
+  let listCalls = 0;
+
   function setup(tasks: Task[], entries: DayEntry[]) {
+    listCalls = 0;
     const tasksService: Partial<TasksService> = {
-      list: () => of(tasks),
+      list: () => {
+        listCalls++;
+        return of(tasks);
+      },
       dayEntries: () => of(entries),
       create: () => of(tasks[0]),
+      logTime: () =>
+        of({ id: 'log1', taskId: tasks[0].id, ownerId: 'o', minutes: 45, logDate: '2026-06-21' }),
     };
 
     TestBed.configureTestingModule({
@@ -49,5 +57,17 @@ describe('DashboardComponent merge', () => {
     const vms = (cmp as any).taskVms();
     expect(vms.find((vm: any) => vm.id === 'a').todayMinutes).toBe(10);
     expect(vms.find((vm: any) => vm.id === 'b').todayMinutes).toBe(45);
+  });
+
+  it('reloads and closes the modal after a successful log', () => {
+    const cmp = setup([task('a', 'Reading')], []) as any;
+    cmp.openLog(cmp.taskVms()[0]);
+    expect(cmp.loggingTask()).not.toBeNull();
+    expect(listCalls).toBe(1); // initial load
+
+    cmp.logTime({ minutes: 45, logDate: '2026-06-21' });
+
+    expect(cmp.loggingTask()).toBeNull(); // modal closed
+    expect(listCalls).toBe(2); // reloaded
   });
 });

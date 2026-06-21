@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Task, DayEntry } from './models';
+import { Task, DayEntry, TimeLog } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
@@ -18,5 +18,9 @@ export class TasksService {
 
   dayEntries(date: string): Observable<DayEntry[]> {
     return this.http.get<DayEntry[]>(`/api/tasks/timelogs/aggregates/${date}`);
+  }
+
+  logTime(taskId: string, minutes: number, logDate: string): Observable<TimeLog> {
+    return this.http.post<TimeLog>(`/api/tasks/${taskId}/timelogs`, { minutes, logDate });
   }
 }

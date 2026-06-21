@@ -50,6 +50,18 @@ body {
   color: var(--color-ink);
 }
 
+/* Hide native number-input spinners (the up/down arrows). */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Centered app-shell width cap — keeps content a tight block on wide screens. */
 .shell {
   width: 100%;
@@ -109,6 +121,34 @@ body {
 /* Box variants */
 .box.dashed {
   border-style: dashed;
+}
+
+.box.thin {
+  border-width: 1.2px;
+}
+
+/* Pill (quick-pick chips) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1.4px solid var(--color-rule);
+  border-radius: 999px;
+  background: var(--color-paper);
+  font-family: var(--font-hand);
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background: #f2efe7;
+}
+
+.pill.active {
+  background: var(--color-ink);
+  color: var(--color-paper);
 }
 
 /* Timer ring */

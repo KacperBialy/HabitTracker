@@ -44,7 +44,8 @@
         <div class="text-muted px-1 py-4 text-sm">No tasks yet — create your first one.</div>
       } @else {
         @for (task of taskVms(); track task.id) {
-          <app-task-row [name]="task.name" [todayMinutes]="task.todayMinutes" />
+          <app-task-row [name]="task.name" [todayMinutes]="task.todayMinutes"
+                        (log)="openLog(task)" />
         }
       }
     </div>
@@ -53,4 +54,13 @@
 
 @if (showNewTask()) {
   <app-new-task-modal (create)="createTask($event)" (cancel)="showNewTask.set(false)" />
+}
+
+@if (loggingTask(); as task) {
+  <app-log-time-modal
+    [taskName]="task.name"
+    [today]="today()"
+    [error]="logError()"
+    (save)="logTime($event)"
+    (cancel)="loggingTask.set(null)" />
 }
