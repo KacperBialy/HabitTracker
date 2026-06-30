@@ -1,7 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { TasksService } from '../../core/tasks.service';
+import { ActiveTimerService } from '../../core/active-timer.service';
+import { localDateString } from '../../core/date-utils';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
 import { NewTaskModalComponent } from './new-task-modal.component';
@@ -20,12 +22,34 @@ interface TaskVm {
 })
 export class DashboardComponent implements OnInit {
   private readonly tasks = inject(TasksService);
+  protected readonly timer = inject(ActiveTimerService);
 
   protected readonly taskVms = signal<TaskVm[]>([]);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
   protected readonly loggingTask = signal<TaskVm | null>(null);
   protected readonly logError = signal('');
+
+  protected readonly activeTaskId = computed(() => this.timer.activeTimer()?.taskId ?? null);
+
+  protected readonly heroLabel = computed(() => this.formatElapsed(this.timer.elapsedSeconds()));
+
+  protected readonly heroSub = computed(() => {
+    const active = this.timer.activeTimer();
+    if (!active)
+      return '';
+
+    const started = active.startedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `started ${started}`;
+  });
+
+  /** Visual heartbeat — sweeps once per minute. There's no fixed target duration to show real progress toward. */
+  protected readonly heroProgress = computed(() => (this.timer.elapsedSeconds() % 60) / 60);
+
+  protected readonly heroSaveNote = computed(() => {
+    const minutes = Math.max(1, Math.round(this.timer.elapsedSeconds() / 60));
+    return `Stopping saves ${minutes} min to today's log.`;
+  });
 
   ngOnInit(): void {
     this.load();
@@ -77,12 +101,27 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /** Starts (or switches to) a timer for this task; reloads once any previous timer is logged. */
+  protected startTimer(task: TaskVm): void {
+    this.timer.start(task.id, task.name).subscribe(() => this.load());
+  }
+
+  /** Stops the active timer, persists it, then reloads so taskVms reflect the new minutes. */
+  protected stopTimer(): void {
+    this.timer.stop(this.today()).subscribe({
+      next: () => this.load(),
+      error: () => this.logError.set('Could not save the timer. Please try again.'),
+    });
+  }
+
+  private formatElapsed(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${`${seconds}`.padStart(2, '0')}`;
+  }
+
   /** Local date as YYYY-MM-DD for the day-aggregates endpoint. */
   today(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = `${now.getMonth() + 1}`.padStart(2, '0');
-    const day = `${now.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return localDateString();
   }
 }

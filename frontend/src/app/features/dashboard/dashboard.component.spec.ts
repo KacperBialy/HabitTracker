@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { signal } from '@angular/core';
 
 import { DashboardComponent } from './dashboard.component';
 import { TasksService } from '../../core/tasks.service';
+import { ActiveTimerService } from '../../core/active-timer.service';
 import { Task, DayEntry } from '../../core/models';
 
 describe('DashboardComponent merge', () => {
@@ -20,10 +22,19 @@ describe('DashboardComponent merge', () => {
       logTime: () =>
         of({ id: 'log1', taskId: tasks[0].id, ownerId: 'o', minutes: 45, logDate: '2026-06-21' }),
     };
+    const activeTimerService: Partial<ActiveTimerService> = {
+      activeTimer: signal(null),
+      elapsedSeconds: signal(0),
+      start: () => of(undefined),
+      stop: () => of(undefined),
+    };
 
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [{ provide: TasksService, useValue: tasksService }],
+      providers: [
+        { provide: TasksService, useValue: tasksService },
+        { provide: ActiveTimerService, useValue: activeTimerService },
+      ],
     });
 
     const fixture = TestBed.createComponent(DashboardComponent);

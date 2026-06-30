@@ -3,31 +3,44 @@
   <div class="border-b-[1.6px] border-rule">
     <div class="shell flex items-center gap-3 px-6 py-3">
       <div class="display text-2xl leading-none">habit<span class="accent">.</span></div>
-      <span class="ml-4 text-sm">Today</span>
     </div>
   </div>
 
   <div class="shell grid grid-cols-[1.1fr_1fr] gap-7 p-7">
-    <!-- LEFT — hero timer (mocked) -->
+    <!-- LEFT — hero timer -->
     <div class="flex flex-col gap-3">
       <div class="text-muted text-[0.8125rem]">Currently tracking</div>
-      <div class="display flex items-center text-[2.125rem] leading-none">
-        <span class="mr-2.5 inline-block h-3.5 w-3.5 rounded-[3px] bg-[#196127]"></span>
-        Deep work — writing
-      </div>
 
-      <div class="mt-1 flex items-start gap-7">
-        <app-timer-ring [label]="'24:18'" [progress]="0.62" [sub]="'running · started 10:42'" />
-        <div class="flex flex-col gap-3 pt-5">
-          <div class="flex gap-2">
-            <button type="button" class="btn primary px-[18px] py-2 text-base" disabled>❚❚ Pause</button>
-            <button type="button" class="btn danger px-[18px] py-2 text-base" disabled>■ Stop</button>
-          </div>
-          <div class="text-muted max-w-[220px] text-[0.8125rem]">
-            Stopping saves <span class="text-ink">24 min</span> to today's log.
+      @if (timer.activeTimer(); as active) {
+        <div class="display flex items-center text-[2.125rem] leading-none">
+          <span class="mr-2.5 inline-block h-3.5 w-3.5 rounded-[3px] bg-[#196127]"></span>
+          {{ active.taskName }}
+        </div>
+
+        <div class="mt-1 flex items-start gap-7">
+          <app-timer-ring [label]="heroLabel()" [progress]="heroProgress()" [sub]="heroSub()" />
+          <div class="flex flex-col gap-3 pt-5">
+            <div class="flex gap-2">
+              <button type="button" class="btn danger px-[18px] py-2 text-base" (click)="stopTimer()">■ Stop</button>
+            </div>
+            <div class="text-muted max-w-[220px] text-[0.8125rem]">
+              {{ heroSaveNote() }}
+            </div>
           </div>
         </div>
-      </div>
+      } @else {
+        <div class="display flex items-center text-[2.125rem] leading-none text-muted">
+          No timer running
+        </div>
+        <div class="mt-1 flex items-start gap-7">
+          <app-timer-ring [label]="'00:00'" [progress]="0" [sub]="'idle'" />
+          <div class="flex flex-col gap-3 pt-5">
+            <div class="text-muted max-w-[220px] text-[0.8125rem]">
+              Start a timer from any task on the right to begin tracking.
+            </div>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- RIGHT — task list (real) -->
@@ -45,7 +58,10 @@
       } @else {
         @for (task of taskVms(); track task.id) {
           <app-task-row [name]="task.name" [todayMinutes]="task.todayMinutes"
-                        (log)="openLog(task)" />
+                        [isTracking]="task.id === activeTaskId()"
+                        (log)="openLog(task)"
+                        (start)="startTimer(task)"
+                        (stop)="stopTimer()" />
         }
       }
     </div>
