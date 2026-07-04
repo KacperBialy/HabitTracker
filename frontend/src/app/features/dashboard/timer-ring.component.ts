@@ -13,8 +13,10 @@ import { Component, computed, input } from '@angular/core';
                 [attr.stroke-dashoffset]="dashOffset()" />
       </svg>
       <div class="absolute inset-0 flex flex-col items-center justify-center">
-        <div class="display leading-none" [style.font-size.rem]="diameter() * 0.28">{{ label() }}</div>
-        <div class="text-muted mt-1 text-[0.8125rem]">{{ sub() }}</div>
+        <div class="display leading-none tabular-nums" [style.font-size.rem]="diameter() * 0.28">{{ label() }}</div>
+        @if (sub()) {
+          <div class="text-muted mt-1 text-[0.8125rem] leading-none">{{ sub() }}</div>
+        }
       </div>
     </div>
   `,
