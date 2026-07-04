@@ -27,8 +27,8 @@ the MSBuild tree and out of the `.sln`.
 
 The decision this forced is **how the browser reaches the SPA and the API**, because the backend
 auth is already **cookie + server-side OIDC** ([Authentication](../../../HabitTracker.Authentication)):
-`/login` does an OIDC redirect and the session is a cookie. How the SPA is served determines whether
-that cookie "just works" or needs reworking.
+`/api/auth/login` does an OIDC redirect and the session is a cookie. How the SPA is served determines
+whether that cookie "just works" or needs reworking.
 
 An **origin** is `scheme + host + port`; the browser only sends the auth cookie automatically, and
 skips CORS, when a request is *same-origin* with the page. Two axes are independent and were
@@ -52,15 +52,16 @@ Angular output as static files, with a fallback route for client-side routing. E
 auth is left untouched.
 
 - **Production:** `ng build` output lands in the host's `wwwroot`; the single existing container
-  serves the SPA, `/api/*`, and `/login` on one origin. `compose.yaml` is unchanged. The host adds
+  serves the SPA, `/api/*`, and `/api/auth/*` on one origin. `compose.yaml` is unchanged. The host adds
   `app.UseStaticFiles()` and `app.MapFallbackToFile("index.html")` so a refresh on a client route
   (e.g. `/calendar`) returns `index.html` and lets the Angular router take over.
-- **Development:** `ng serve` runs on its own port; an Angular `proxy.conf.json` forwards `/api` and
-  `/login` to the host (`https://localhost:7252`). The browser only ever talks to the dev-server
-  origin, so dev behaves same-origin too — hot reload *and* working cookies.
+- **Development:** `ng serve` runs on its own port (:4200); an Angular `proxy.conf.json` forwards
+  `/api` and the OIDC callbacks (`/signin-oidc`, `/signout-callback-oidc`) to the host
+  (`http://localhost:8080`). The browser only ever talks to the dev-server origin, so dev behaves
+  same-origin too — hot reload *and* working cookies.
 - **Auth stays as-is.** Because the SPA is same-origin with the API, the browser attaches the auth
-  cookie automatically and there is no CORS. Login is a `window.location` redirect to `/login`; the
-  server runs OIDC and redirects back authenticated. Angular writes no auth code.
+  cookie automatically and there is no CORS. Login is a `window.location` redirect to
+  `/api/auth/login`; the server runs OIDC and redirects back authenticated. Angular writes no auth code.
 - **DTO contracts** are handwritten TypeScript interfaces mirroring the module Contracts DTOs to
   start; OpenAPI codegen is a later option, not a prerequisite.
 

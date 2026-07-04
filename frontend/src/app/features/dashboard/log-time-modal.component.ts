@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 interface QuickPick {
@@ -29,7 +29,7 @@ const MAX_MINUTES = 1440;
             <div class="flex items-center rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
                         border-[1.4px] border-rule px-2.5 py-2">
               <span class="mr-2 h-3 w-3 rounded-[2px] bg-muted"></span>
-              <span class="min-w-0 flex-1 truncate">{{ taskName }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ taskName() }}</span>
             </div>
           </div>
 
@@ -65,8 +65,8 @@ const MAX_MINUTES = 1440;
             }
           </div>
 
-          @if (error) {
-            <div class="text-accent text-[13px]">{{ error }}</div>
+          @if (error()) {
+            <div class="text-accent text-[13px]">{{ error() }}</div>
           }
 
           <div class="mt-1 flex justify-end gap-2">
@@ -81,12 +81,12 @@ const MAX_MINUTES = 1440;
   `,
 })
 export class LogTimeModalComponent implements OnInit {
-  @Input() taskName = '';
-  @Input() today = '';
-  @Input() error = '';
+  readonly taskName = input('');
+  readonly today = input('');
+  readonly error = input('');
 
-  @Output() save = new EventEmitter<LogTimePayload>();
-  @Output() cancel = new EventEmitter<void>();
+  readonly save = output<LogTimePayload>();
+  readonly cancel = output<void>();
 
   protected hours = 0;
   protected minutes = 0;
@@ -103,11 +103,11 @@ export class LogTimeModalComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.logDate = this.today;
+    this.logDate = this.today();
   }
 
   protected get todayMax(): string {
-    return this.today;
+    return this.today();
   }
 
   /** hours*60 + minutes, treating blank/NaN inputs as 0. */

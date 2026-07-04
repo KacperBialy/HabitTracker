@@ -1,10 +1,13 @@
+import { TestBed } from '@angular/core/testing';
+
 import { TaskRowComponent } from './task-row.component';
 
 describe('TaskRowComponent.todayLabel', () => {
   function labelFor(minutes: number): string {
-    const row = new TaskRowComponent();
-    row.todayMinutes = minutes;
-    return row.todayLabel;
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.componentRef.setInput('todayMinutes', minutes);
+    fixture.detectChanges();
+    return fixture.componentInstance.todayLabel();
   }
 
   it('hides the label when zero', () => {

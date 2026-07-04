@@ -4,10 +4,12 @@ import { forkJoin } from 'rxjs';
 import { TasksService } from '../../core/tasks.service';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { localDateString } from '../../core/date-utils';
+import { DailyAggregate } from '../../core/models';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
 import { NewTaskModalComponent } from './new-task-modal.component';
 import { LogTimeModalComponent, LogTimePayload } from './log-time-modal.component';
+import { ContributionsHeatmapComponent } from './contributions-heatmap.component';
 
 interface TaskVm {
   id: string;
@@ -17,7 +19,13 @@ interface TaskVm {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [TimerRingComponent, TaskRowComponent, NewTaskModalComponent, LogTimeModalComponent],
+  imports: [
+    TimerRingComponent,
+    TaskRowComponent,
+    NewTaskModalComponent,
+    LogTimeModalComponent,
+    ContributionsHeatmapComponent,
+  ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -25,6 +33,7 @@ export class DashboardComponent implements OnInit {
   protected readonly timer = inject(ActiveTimerService);
 
   protected readonly taskVms = signal<TaskVm[]>([]);
+  protected readonly heatmapDays = signal<DailyAggregate[]>([]);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
   protected readonly loggingTask = signal<TaskVm | null>(null);
@@ -57,10 +66,15 @@ export class DashboardComponent implements OnInit {
 
   private load(): void {
     this.loading.set(true);
+    // The rolling 365-day window can straddle the year boundary, so fetch this year and last
+    // year and let the heatmap slice to the window (the aggregates endpoint is calendar-year).
+    const currentYear = new Date().getFullYear();
     forkJoin({
       tasks: this.tasks.list(),
       entries: this.tasks.dayEntries(this.today()),
-    }).subscribe(({ tasks, entries }) => {
+      thisYear: this.tasks.yearAggregates(currentYear),
+      lastYear: this.tasks.yearAggregates(currentYear - 1),
+    }).subscribe(({ tasks, entries, thisYear, lastYear }) => {
       const minutesByTask = new Map<string, number>();
       for (const entry of entries) {
         minutesByTask.set(entry.taskId, (minutesByTask.get(entry.taskId) ?? 0) + entry.minutes);
@@ -72,6 +86,7 @@ export class DashboardComponent implements OnInit {
           todayMinutes: minutesByTask.get(task.id) ?? 0,
         })),
       );
+      this.heatmapDays.set([...lastYear.days, ...thisYear.days]);
       this.loading.set(false);
     });
   }

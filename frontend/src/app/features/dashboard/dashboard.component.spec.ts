@@ -21,6 +21,7 @@ describe('DashboardComponent merge', () => {
       create: () => of(tasks[0]),
       logTime: () =>
         of({ id: 'log1', taskId: tasks[0].id, ownerId: 'o', minutes: 45, logDate: '2026-06-21' }),
+      yearAggregates: (year: number) => of({ year, days: [] }),
     };
     const activeTimerService: Partial<ActiveTimerService> = {
       activeTimer: signal(null),

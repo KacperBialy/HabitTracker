@@ -20,3 +20,16 @@ export interface TimeLog {
   minutes: number;
   logDate: string;
 }
+
+/** Mirrors DailyAggregateDto — date is an ISO YYYY-MM-DD string. */
+export interface DailyAggregate {
+  date: string;
+  totalMinutes: number;
+  entryCount: number;
+}
+
+/** Mirrors YearAggregatesDto from GET /api/tasks/timelogs/aggregates?year={year}. */
+export interface YearAggregates {
+  year: number;
+  days: DailyAggregate[];
+}

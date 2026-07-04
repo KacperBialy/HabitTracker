@@ -1,11 +1,13 @@
+import { TestBed } from '@angular/core/testing';
+
 import { LogTimeModalComponent } from './log-time-modal.component';
 
 describe('LogTimeModalComponent', () => {
   function modal(): LogTimeModalComponent {
-    const cmp = new LogTimeModalComponent();
-    cmp.today = '2026-06-21';
-    cmp.ngOnInit();
-    return cmp;
+    const fixture = TestBed.createComponent(LogTimeModalComponent);
+    fixture.componentRef.setInput('today', '2026-06-21');
+    fixture.detectChanges(); // triggers ngOnInit
+    return fixture.componentInstance;
   }
 
   describe('totalMinutes', () => {
