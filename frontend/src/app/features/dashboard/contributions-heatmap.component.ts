@@ -79,13 +79,13 @@ function humanDate(value: string): string {
             <span></span>
           </div>
 
-          <div class="flex flex-1 gap-[3px]">
+          <div class="flex flex-1 gap-0.75">
             @for (week of weeks(); track $index) {
               <div class="grid min-w-0 flex-1 grid-rows-7 gap-0.75">
                 @for (cell of week; track $index) {
                   @if (cell) {
                     <button type="button"
-                            class="aspect-square w-full rounded-[2px] {{ cellClass(cell.level) }}"
+                            class="aspect-square w-full rounded-xs {{ cellClass(cell.level) }}"
                             [title]="tooltip(cell)"
                             [attr.aria-label]="tooltip(cell)"
                             (click)="selectDay.emit(cell)"></button>
@@ -103,7 +103,7 @@ function humanDate(value: string): string {
       <div class="text-muted mt-4 flex items-center gap-1.5 text-[12px]">
         <span>Less</span>
         @for (level of legendLevels; track level) {
-          <span class="h-3 w-3 rounded-[2px] {{ cellClass(level) }}"></span>
+          <span class="h-3 w-3 rounded-xs {{ cellClass(level) }}"></span>
         }
         <span>More</span>
       </div>
