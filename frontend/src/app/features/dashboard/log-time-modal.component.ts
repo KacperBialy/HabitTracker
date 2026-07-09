@@ -18,8 +18,8 @@ const MAX_MINUTES = 1440;
   selector: 'app-log-time-modal',
   imports: [FormsModule],
   template: `
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/15" (click)="cancel.emit()">
-      <div class="box w-96 p-5 shadow-[4px_6px_0_rgba(0,0,0,0.12)]" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/15 p-4" (click)="cancel.emit()">
+      <div class="box w-full max-w-96 p-4 shadow-[4px_6px_0_rgba(0,0,0,0.12)] sm:p-5" (click)="$event.stopPropagation()">
         <div class="display mb-4 text-2xl">Log time</div>
 
         <div class="flex flex-col gap-3">
@@ -33,7 +33,7 @@ const MAX_MINUTES = 1440;
             </div>
           </div>
 
-          <div class="flex gap-3">
+          <div class="flex flex-col gap-3 sm:flex-row">
             <!-- Date -->
             <div class="flex-1">
               <div class="mb-1 text-[13px]">Date</div>
@@ -69,7 +69,7 @@ const MAX_MINUTES = 1440;
             <div class="text-accent text-[13px]">{{ error() }}</div>
           }
 
-          <div class="mt-1 flex justify-end gap-2">
+          <div class="mt-1 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" class="btn" (click)="cancel.emit()">Cancel</button>
             <button type="button" class="btn primary" [disabled]="!isValid" (click)="submit()">
               Save entry

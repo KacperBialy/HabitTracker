@@ -1,25 +1,25 @@
 <div class="min-h-screen bg-paper">
   <!-- Top bar — border spans full width; inner content aligns to the shell -->
   <div class="border-b-[1.6px] border-rule">
-    <div class="shell flex items-center gap-3 px-6 py-3">
+    <div class="shell flex items-center gap-3 px-4 py-3 sm:px-6">
       <div class="display text-2xl leading-none">habit<span class="accent">.</span></div>
     </div>
   </div>
 
-  <div class="shell grid grid-cols-[1.1fr_1fr] gap-7 p-7">
+  <div class="shell grid gap-6 p-4 sm:p-6 lg:grid-cols-[1.1fr_1fr] lg:gap-7 lg:p-7">
     <!-- LEFT — hero timer -->
     <div class="flex flex-col gap-3">
       <div class="text-muted text-[0.8125rem]">Currently tracking</div>
 
       @if (timer.activeTimer(); as active) {
-        <div class="display flex items-center text-[2.125rem] leading-none">
+        <div class="display flex items-center text-[1.875rem] leading-none sm:text-[2.125rem]">
           <span class="mr-2.5 inline-block h-3.5 w-3.5 rounded-[3px] bg-[#196127]"></span>
           {{ active.taskName }}
         </div>
 
-        <div class="mt-1 flex items-start gap-7">
+        <div class="mt-1 flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-7">
           <app-timer-ring [label]="heroLabel()" [progress]="heroProgress()" [sub]="heroSub()" />
-          <div class="flex flex-col gap-3 pt-5">
+          <div class="flex w-full flex-col items-center gap-3 text-center sm:w-auto sm:items-start sm:pt-5 sm:text-left">
             <div class="flex gap-2">
               <button type="button" class="btn danger px-[18px] py-2 text-base" (click)="stopTimer()">■ Stop</button>
             </div>
@@ -29,12 +29,12 @@
           </div>
         </div>
       } @else {
-        <div class="display flex items-center text-[2.125rem] leading-none text-muted">
+        <div class="display flex items-center text-[1.875rem] leading-none text-muted sm:text-[2.125rem]">
           No timer running
         </div>
-        <div class="mt-1 flex items-start gap-7">
+        <div class="mt-1 flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-7">
           <app-timer-ring [label]="'00:00'" [progress]="0" [sub]="'idle'" />
-          <div class="flex flex-col gap-3 pt-5">
+          <div class="flex w-full flex-col items-center gap-3 text-center sm:w-auto sm:items-start sm:pt-5 sm:text-left">
             <div class="text-muted max-w-[220px] text-[0.8125rem]">
               Start a timer from any task on the right to begin tracking.
             </div>
@@ -67,7 +67,7 @@
     </div>
   </div>
 
-  <div class="shell px-7 pb-7">
+  <div class="shell px-4 pb-6 sm:px-6 sm:pb-7 lg:px-7">
     <app-contributions-heatmap [days]="heatmapDays()" />
   </div>
 </div>

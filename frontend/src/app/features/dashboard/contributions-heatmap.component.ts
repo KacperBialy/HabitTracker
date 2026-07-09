@@ -56,51 +56,53 @@ function humanDate(value: string): string {
   selector: 'app-contributions-heatmap',
   template: `
     <section>
-      <div class="mb-2 flex items-baseline gap-3">
+      <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span class="display text-[1.75rem]">Activity</span>
         <span class="text-muted text-[0.875rem]">last 365 days</span>
       </div>
 
-      <div class="flex flex-col gap-2">
-        <div class="flex gap-0.75 pl-7.5">
-          @for (label of monthLabels(); track $index) {
-            <div class="text-muted min-w-0 flex-1 text-[11px] leading-none">{{ label }}</div>
-          }
-        </div>
-
-        <div class="flex gap-1.5">
-          <div class="text-muted grid w-6.5 shrink-0 grid-rows-7 gap-0.75 text-[11px] leading-none">
-            <span></span>
-            <span>Mon</span>
-            <span></span>
-            <span>Wed</span>
-            <span></span>
-            <span>Fri</span>
-            <span></span>
+      <div class="overflow-x-auto pb-2">
+        <div class="flex min-w-[42rem] flex-col gap-2">
+          <div class="flex gap-0.75 pl-7.5">
+            @for (label of monthLabels(); track $index) {
+              <div class="text-muted min-w-0 flex-1 text-[11px] leading-none">{{ label }}</div>
+            }
           </div>
 
-          <div class="flex flex-1 gap-0.75">
-            @for (week of weeks(); track $index) {
-              <div class="grid min-w-0 flex-1 grid-rows-7 gap-0.75">
-                @for (cell of week; track $index) {
-                  @if (cell) {
-                    <button type="button"
-                            class="aspect-square w-full rounded-xs {{ cellClass(cell.level) }}"
-                            [title]="tooltip(cell)"
-                            [attr.aria-label]="tooltip(cell)"
-                            (click)="selectDay.emit(cell)"></button>
-                  } @else {
-                    <span class="aspect-square w-full"></span>
+          <div class="flex gap-1.5">
+            <div class="text-muted grid w-6.5 shrink-0 grid-rows-7 gap-0.75 text-[11px] leading-none">
+              <span></span>
+              <span>Mon</span>
+              <span></span>
+              <span>Wed</span>
+              <span></span>
+              <span>Fri</span>
+              <span></span>
+            </div>
+
+            <div class="flex flex-1 gap-0.75">
+              @for (week of weeks(); track $index) {
+                <div class="grid min-w-0 flex-1 grid-rows-7 gap-0.75">
+                  @for (cell of week; track $index) {
+                    @if (cell) {
+                      <button type="button"
+                              class="aspect-square w-full rounded-xs {{ cellClass(cell.level) }}"
+                              [title]="tooltip(cell)"
+                              [attr.aria-label]="tooltip(cell)"
+                              (click)="selectDay.emit(cell)"></button>
+                    } @else {
+                      <span class="aspect-square w-full"></span>
+                    }
                   }
-                }
-              </div>
-            }
+                </div>
+              }
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Legend -->
-      <div class="text-muted mt-4 flex items-center gap-1.5 text-[12px]">
+      <div class="text-muted mt-3 flex flex-wrap items-center gap-1.5 text-[12px]">
         <span>Less</span>
         @for (level of legendLevels; track level) {
           <span class="h-3 w-3 rounded-xs {{ cellClass(level) }}"></span>
@@ -151,7 +153,10 @@ export class ContributionsHeatmapComponent {
         current = [];
       }
     }
-    if (current.length > 0) weeks.push(current);
+    if (current.length > 0) {
+      while (current.length < 7) current.push(null);
+      weeks.push(current);
+    }
     return weeks;
   });
 
