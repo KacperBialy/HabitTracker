@@ -112,8 +112,8 @@ public sealed class TimeLogAggregatesTests(ApiFactory factory)
         var entries = await client.GetFromJsonAsync<List<DayEntryDto>>("/api/tasks/timelogs/aggregates/2026-06-19");
 
         entries.Should().BeEquivalentTo([
-            new DayEntryDto(piano.Id, "Piano", 45),
-            new DayEntryDto(reading.Id, "Reading", 30)
+            new DayEntryDto(piano.Id, "Piano", 45, TaskColor.Slate),
+            new DayEntryDto(reading.Id, "Reading", 30, TaskColor.Slate)
         ], options => options.WithStrictOrdering());
     }
 

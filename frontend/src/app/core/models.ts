@@ -1,8 +1,11 @@
+import { TaskColor } from './task-colors';
+
 /** Mirrors TaskDto — TaskId serializes as a bare GUID string. */
 export interface Task {
   id: string;
   name: string;
   createdAt: string;
+  color: TaskColor;
 }
 
 /** Mirrors DayEntryDto from GET /api/tasks/timelogs/aggregates/{date}. */
@@ -10,6 +13,7 @@ export interface DayEntry {
   taskId: string;
   taskName: string;
   minutes: number;
+  taskColor: TaskColor;
 }
 
 /** Mirrors TimeLogDto — logDate is an ISO YYYY-MM-DD string. */

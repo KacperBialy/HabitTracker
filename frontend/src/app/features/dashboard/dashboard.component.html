@@ -57,7 +57,9 @@
         <div class="text-muted px-1 py-4 text-sm">No tasks yet — create your first one.</div>
       } @else {
         @for (task of taskVms(); track task.id) {
-          <app-task-row [name]="task.name" [todayMinutes]="task.todayMinutes"
+          <app-task-row [name]="task.name"
+                        [color]="task.color"
+                        [todayMinutes]="task.todayMinutes"
                         [isTracking]="task.id === activeTaskId()"
                         (log)="openLog(task)"
                         (start)="startTimer(task)"

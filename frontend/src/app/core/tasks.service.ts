@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Task, DayEntry, TimeLog, YearAggregates } from './models';
+import { TaskColor } from './task-colors';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
@@ -12,8 +13,12 @@ export class TasksService {
     return this.http.get<Task[]>('/api/tasks');
   }
 
-  create(name: string): Observable<Task> {
-    return this.http.post<Task>('/api/tasks', { name });
+  create(name: string, color: TaskColor): Observable<Task> {
+    return this.http.post<Task>('/api/tasks', { name, color });
+  }
+
+  delete(taskId: string): Observable<void> {
+    return this.http.delete<void>(`/api/tasks/${taskId}`);
   }
 
   dayEntries(date: string): Observable<DayEntry[]> {

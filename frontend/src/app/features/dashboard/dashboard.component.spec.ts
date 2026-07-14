@@ -6,6 +6,7 @@ import { DashboardComponent } from './dashboard.component';
 import { TasksService } from '../../core/tasks.service';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { Task, DayEntry } from '../../core/models';
+import { TaskColor } from '../../core/task-colors';
 
 describe('DashboardComponent merge', () => {
   let listCalls = 0;
@@ -43,12 +44,12 @@ describe('DashboardComponent merge', () => {
     return fixture.componentInstance;
   }
 
-  const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z' });
-  const entry = (taskId: string, minutes: number): DayEntry => ({ taskId, taskName: '', minutes });
+  const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z', color: TaskColor.Slate });
+  const entry = (taskId: string, minutes: number): DayEntry => ({ taskId, taskName: '', minutes, taskColor: TaskColor.Slate });
 
   it('maps tasks with no entries to zero minutes', () => {
     const cmp = setup([task('a', 'Reading')], []);
-    expect((cmp as any).taskVms()).toEqual([{ id: 'a', name: 'Reading', todayMinutes: 0 }]);
+    expect((cmp as any).taskVms()).toEqual([{ id: 'a', name: 'Reading', todayMinutes: 0, color: TaskColor.Slate }]);
   });
 
   it('attaches a single entry to its task', () => {

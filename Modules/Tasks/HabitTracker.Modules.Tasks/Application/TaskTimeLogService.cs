@@ -14,7 +14,9 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
         if (request.Minutes is <= 0 or > TimeLogEntry.MaxMinutes)
             return null;
 
-        var ownsTask = await db.Tasks.AnyAsync(t => t.Id == taskId && t.OwnerId == ownerId, ct);
+        var ownsTask = await db.Tasks
+            .AnyAsync(t => t.Id == taskId && t.OwnerId == ownerId, ct);
+
         if (!ownsTask)
             return null;
 
@@ -26,7 +28,8 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
 
     public async Task<IReadOnlyList<TimeLogDto>> ListTimeLogs(Guid ownerId, TaskId taskId, CancellationToken ct = default)
     {
-        var logs = await db.TimeLogs.AsNoTracking()
+        var logs = await db.TimeLogs
+            .AsNoTracking()
             .Where(log => log.TaskId == taskId && log.OwnerId == ownerId)
             .OrderByDescending(log => log.LogDate)
             .ThenByDescending(log => log.Id)
@@ -36,8 +39,9 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
 
     public async Task<bool> DeleteTimeLog(Guid ownerId, TaskId taskId, TimeLogId id, CancellationToken ct = default)
     {
-        var entry = await db.TimeLogs.SingleOrDefaultAsync(
-            log => log.Id == id && log.TaskId == taskId && log.OwnerId == ownerId, ct);
+        var entry = await db.TimeLogs
+            .SingleOrDefaultAsync(
+                log => log.Id == id && log.TaskId == taskId && log.OwnerId == ownerId, ct);
         if (entry is null)
             return false;
 
@@ -52,7 +56,8 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
         var from = new DateOnly(targetYear, 1, 1);
         var to = new DateOnly(targetYear, 12, 31);
 
-        var rows = await db.TimeLogs.AsNoTracking()
+        var rows = await db.TimeLogs
+            .AsNoTracking()
             .Where(log => log.OwnerId == ownerId && log.LogDate >= from && log.LogDate <= to)
             .GroupBy(log => log.LogDate)
             .Select(group => new { Date = group.Key, TotalMinutes = group.Sum(log => log.Minutes), EntryCount = group.Count() })
@@ -65,13 +70,16 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
 
     public async Task<IReadOnlyList<DayEntryDto>> GetDayEntries(Guid ownerId, DateOnly date, CancellationToken ct = default)
     {
-        var query =
-            from log in db.TimeLogs.AsNoTracking()
-            where log.OwnerId == ownerId && log.LogDate == date
-            from task in db.Tasks.Where(task => task.Id == log.TaskId)
-            orderby log.Minutes descending
-            select new DayEntryDto(log.TaskId, task.Name, log.Minutes);
-
-        return await query.ToListAsync(ct);
+        return await db.TimeLogs
+            .AsNoTracking()
+            .Where(log => log.OwnerId == ownerId && log.LogDate == date)
+            .Join(
+                db.Tasks,
+                log => log.TaskId,
+                task => task.Id,
+                (log, task) => new { log, task })
+            .OrderByDescending(row => row.log.Minutes)
+            .Select(row => new DayEntryDto(row.log.TaskId, row.task.Name, row.log.Minutes, row.task.Color))
+            .ToListAsync(ct);
     }
 }

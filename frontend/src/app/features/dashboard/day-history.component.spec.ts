@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { DayHistoryComponent } from './day-history.component';
 import { TasksService } from '../../core/tasks.service';
 import { DailyAggregate, DayEntry } from '../../core/models';
+import { TaskColor } from '../../core/task-colors';
 
 interface HistoryRow {
   date: string;
@@ -78,13 +79,13 @@ describe('DayHistoryComponent', () => {
 
   it('lazily fetches a day breakdown on first expand and caches it', () => {
     const cmp = build([day('2026-07-14', 90, 1)]);
-    entriesByDate['2026-07-14'] = [{ taskId: 'a', taskName: 'Reading', minutes: 90 }];
+    entriesByDate['2026-07-14'] = [{ taskId: 'a', taskName: 'Reading', minutes: 90, taskColor: TaskColor.Green }];
 
     expect(cmp.entriesFor('2026-07-14')).toBeUndefined();
 
     cmp.toggle('2026-07-14');
     expect(cmp.expanded().has('2026-07-14')).toBe(true);
-    expect(cmp.entriesFor('2026-07-14')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 90 }]);
+    expect(cmp.entriesFor('2026-07-14')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 90, taskColor: TaskColor.Green }]);
     expect(dayEntriesCalls).toEqual(['2026-07-14']);
 
     // Collapse then re-expand — must not refetch.
@@ -96,22 +97,22 @@ describe('DayHistoryComponent', () => {
   it('groups multiple entries for the same task, summing minutes, biggest first', () => {
     const cmp = build([day('2026-07-14', 105, 3)]);
     entriesByDate['2026-07-14'] = [
-      { taskId: 'a', taskName: 'Reading', minutes: 30 },
-      { taskId: 'b', taskName: 'Workout', minutes: 45 },
-      { taskId: 'a', taskName: 'Reading', minutes: 30 },
+      { taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Green },
+      { taskId: 'b', taskName: 'Workout', minutes: 45, taskColor: TaskColor.Red },
+      { taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Green },
     ];
 
     cmp.toggle('2026-07-14');
 
     expect(cmp.entriesFor('2026-07-14')).toEqual([
-      { taskId: 'a', taskName: 'Reading', minutes: 60 },
-      { taskId: 'b', taskName: 'Workout', minutes: 45 },
+      { taskId: 'a', taskName: 'Reading', minutes: 60, taskColor: TaskColor.Green },
+      { taskId: 'b', taskName: 'Workout', minutes: 45, taskColor: TaskColor.Red },
     ]);
   });
 
   it('auto-expands and fetches the day when selectedDate changes (heatmap click)', () => {
     const fixture = buildFixture([day('2026-07-14', 90, 1), day('2026-07-10', 30, 1)]);
-    entriesByDate['2026-07-10'] = [{ taskId: 'a', taskName: 'Reading', minutes: 30 }];
+    entriesByDate['2026-07-10'] = [{ taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Slate }];
     const cmp = fixture.componentInstance as Instance;
 
     expect(cmp.expanded().size).toBe(0);
@@ -121,6 +122,6 @@ describe('DayHistoryComponent', () => {
 
     expect(cmp.expanded().has('2026-07-10')).toBe(true);
     expect(dayEntriesCalls).toEqual(['2026-07-10']);
-    expect(cmp.entriesFor('2026-07-10')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 30 }]);
+    expect(cmp.entriesFor('2026-07-10')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Slate }]);
   });
 });

@@ -1,8 +1,9 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { formatDate } from '@angular/common';
 
 import { DailyAggregate, DayEntry } from '../../core/models';
 import { formatMinutes } from '../../core/date-utils';
+import { TaskColorHexPipe } from '../../core/task-color-hex.pipe';
 import { TasksService } from '../../core/tasks.service';
 
 interface HistoryRow {
@@ -13,7 +14,9 @@ interface HistoryRow {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-day-history',
+  imports: [TaskColorHexPipe],
   template: `
     <section>
       <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -44,6 +47,8 @@ interface HistoryRow {
                     @if (entriesFor(row.date); as entries) {
                       @for (entry of entries; track entry.taskId) {
                         <div class="flex items-center gap-2 py-0.5 text-[13px]">
+                          <span class="inline-block h-2 w-2 shrink-0 rounded-xs"
+                                [style.background]="entry.taskColor | taskColorHex"></span>
                           <span class="min-w-0 flex-1 truncate">{{ entry.taskName }}</span>
                           <span class="text-muted">{{ minutesLabel(entry.minutes) }}</span>
                         </div>

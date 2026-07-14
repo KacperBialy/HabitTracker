@@ -1,10 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { TasksService } from '../../core/tasks.service';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { localDateString } from '../../core/date-utils';
 import { DailyAggregate } from '../../core/models';
+import { TaskColor } from '../../core/task-colors';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
 import { NewTaskModalComponent } from './new-task-modal.component';
@@ -16,9 +17,11 @@ interface TaskVm {
   id: string;
   name: string;
   todayMinutes: number;
+  color: TaskColor;
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-dashboard',
   imports: [
     TimerRingComponent,
@@ -87,6 +90,7 @@ export class DashboardComponent implements OnInit {
           id: task.id,
           name: task.name,
           todayMinutes: minutesByTask.get(task.id) ?? 0,
+          color: task.color,
         })),
       );
       this.heatmapDays.set([...lastYear.days, ...thisYear.days]);
@@ -94,8 +98,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  protected createTask(name: string): void {
-    this.tasks.create(name).subscribe(() => {
+  protected createTask(request: { name: string; color: TaskColor }): void {
+    this.tasks.create(request.name, request.color).subscribe(() => {
       this.showNewTask.set(false);
       this.load();
     });

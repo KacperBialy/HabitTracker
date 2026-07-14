@@ -30,6 +30,32 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task CreatingATaskWithoutAColorDefaultsToSlate()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+
+        var create = await client.PostAsJsonAsync("/api/tasks", new CreateTaskRequest("No color"));
+        var created = await create.Content.ReadFromJsonAsync<TaskDto>();
+
+        created.Should().NotBeNull();
+        created.Color.Should().Be(TaskColor.Slate);
+    }
+
+    [Fact]
+    public async Task AChosenColorRoundTripsThroughCreateAndList()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+
+        var create = await client.PostAsJsonAsync("/api/tasks", new CreateTaskRequest("Reading", TaskColor.Green));
+        var created = await create.Content.ReadFromJsonAsync<TaskDto>();
+        created.Should().NotBeNull();
+        created.Color.Should().Be(TaskColor.Green);
+
+        var list = await client.GetFromJsonAsync<List<TaskDto>>("/api/tasks");
+        list.Should().ContainSingle().Which.Color.Should().Be(TaskColor.Green);
+    }
+
+    [Fact]
     public async Task TasksAreScopedToTheirOwner()
     {
         var owner = Guid.NewGuid();

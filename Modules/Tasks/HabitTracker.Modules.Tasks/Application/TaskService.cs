@@ -14,7 +14,7 @@ internal sealed class TaskService(
 {
     public async Task<TaskDto> Create(Guid ownerId, CreateTaskRequest request, CancellationToken ct = default)
     {
-        var task = TaskItem.Register(ownerId, request.Name, clock.GetUtcNow());
+        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow());
         db.Tasks.Add(task);
         await db.SaveChangesAsync(ct);
         return task.ToDto();
