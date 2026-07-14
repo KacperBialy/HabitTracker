@@ -1,5 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 
+import { formatMinutes } from '../../core/date-utils';
+
 @Component({
   selector: 'app-task-row',
   template: `
@@ -33,11 +35,7 @@ export class TaskRowComponent {
   readonly stop = output<void>();
 
   readonly todayLabel = computed(() => {
-    const total = this.todayMinutes();
-    if (total <= 0) return '';
-    if (total < 60) return `${total}m today`;
-    const hours = Math.floor(total / 60);
-    const minutes = total % 60;
-    return minutes === 0 ? `${hours}h today` : `${hours}h ${minutes}m today`;
+    const label = formatMinutes(this.todayMinutes());
+    return label ? `${label} today` : '';
   });
 }

@@ -10,6 +10,7 @@ import { TaskRowComponent } from './task-row.component';
 import { NewTaskModalComponent } from './new-task-modal.component';
 import { LogTimeModalComponent, LogTimePayload } from './log-time-modal.component';
 import { ContributionsHeatmapComponent } from './contributions-heatmap.component';
+import { DayHistoryComponent } from './day-history.component';
 
 interface TaskVm {
   id: string;
@@ -25,6 +26,7 @@ interface TaskVm {
     NewTaskModalComponent,
     LogTimeModalComponent,
     ContributionsHeatmapComponent,
+    DayHistoryComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
@@ -34,6 +36,7 @@ export class DashboardComponent implements OnInit {
 
   protected readonly taskVms = signal<TaskVm[]>([]);
   protected readonly heatmapDays = signal<DailyAggregate[]>([]);
+  protected readonly selectedHistoryDate = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
   protected readonly loggingTask = signal<TaskVm | null>(null);
