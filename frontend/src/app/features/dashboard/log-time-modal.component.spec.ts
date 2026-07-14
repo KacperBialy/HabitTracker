@@ -13,25 +13,25 @@ describe('LogTimeModalComponent', () => {
   describe('totalMinutes', () => {
     it('composes hours and minutes', () => {
       const cmp = modal();
-      (cmp as any).hours = 1;
-      (cmp as any).minutes = 12;
-      expect(cmp.totalMinutes).toBe(72);
+      (cmp as any).hours.set(1);
+      (cmp as any).minutes.set(12);
+      expect((cmp as any).totalMinutes()).toBe(72);
     });
 
     it('treats blank inputs as zero', () => {
       const cmp = modal();
-      (cmp as any).hours = '' as unknown as number;
-      (cmp as any).minutes = 45;
-      expect(cmp.totalMinutes).toBe(45);
+      (cmp as any).hours.set(0);
+      (cmp as any).minutes.set(45);
+      expect((cmp as any).totalMinutes()).toBe(45);
     });
   });
 
   describe('isValid bounds', () => {
     function validFor(hours: number, minutes: number): boolean {
       const cmp = modal();
-      (cmp as any).hours = hours;
-      (cmp as any).minutes = minutes;
-      return cmp.isValid;
+      (cmp as any).hours.set(hours);
+      (cmp as any).minutes.set(minutes);
+      return (cmp as any).isValid();
     }
 
     it('rejects zero duration', () => {
@@ -52,9 +52,9 @@ describe('LogTimeModalComponent', () => {
 
     it('rejects when the date is missing', () => {
       const cmp = modal();
-      (cmp as any).logDate = '';
-      (cmp as any).minutes = 30;
-      expect(cmp.isValid).toBe(false);
+      (cmp as any).logDate.set('');
+      (cmp as any).minutes.set(30);
+      expect((cmp as any).isValid()).toBe(false);
     });
   });
 
@@ -62,16 +62,16 @@ describe('LogTimeModalComponent', () => {
     it('sets hours and minutes from a pick', () => {
       const cmp = modal();
       (cmp as any).applyPick({ label: '1h 30m', minutes: 90 });
-      expect((cmp as any).hours).toBe(1);
-      expect((cmp as any).minutes).toBe(30);
-      expect((cmp as any).selectedPick).toBe(90);
+      expect((cmp as any).hours()).toBe(1);
+      expect((cmp as any).minutes()).toBe(30);
+      expect((cmp as any).selectedPick()).toBe(90);
     });
   });
 
   it('emits the composed minutes and date on save', () => {
     const cmp = modal();
-    (cmp as any).hours = 0;
-    (cmp as any).minutes = 45;
+    (cmp as any).hours.set(0);
+    (cmp as any).minutes.set(45);
     let emitted: { minutes: number; logDate: string } | undefined;
     cmp.save.subscribe((payload) => (emitted = payload));
 

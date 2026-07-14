@@ -1,5 +1,4 @@
-import { Component, OnInit, input, output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit, computed, input, output, signal } from '@angular/core';
 
 interface QuickPick {
   label: string;
@@ -15,8 +14,8 @@ const MAX_MINUTES = 1440;
 
 /** Manual time-log entry for a single task. Ported from the ManualLog wireframe (no note field). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-log-time-modal',
-  imports: [FormsModule],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/15 p-4" (click)="cancel.emit()">
       <div class="box w-full max-w-96 p-4 shadow-[4px_6px_0_rgba(0,0,0,0.12)] sm:p-5" (click)="$event.stopPropagation()">
@@ -38,7 +37,7 @@ const MAX_MINUTES = 1440;
             <div class="flex-1">
               <div class="mb-1 text-[13px]">Date</div>
               <input type="date" class="box thin w-full px-2.5 py-2 text-sm outline-none"
-                     [(ngModel)]="logDate" [max]="todayMax" />
+                     [value]="logDate()" (input)="logDate.set($any($event.target).value)" [max]="today()" />
             </div>
             <!-- Duration -->
             <div class="flex-1">
@@ -46,10 +45,10 @@ const MAX_MINUTES = 1440;
               <div class="flex items-center gap-1.5 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
                           border-[1.4px] border-rule px-2.5 py-2">
                 <input type="number" min="0" max="24" class="display w-8 bg-transparent text-lg outline-none"
-                       [(ngModel)]="hours" (ngModelChange)="onManualEdit()" />
+                       [value]="hours()" (input)="onManualEdit(hours, $event)" />
                 <span class="text-muted">h</span>
                 <input type="number" min="0" max="59" class="display w-8 bg-transparent text-lg outline-none"
-                       [(ngModel)]="minutes" (ngModelChange)="onManualEdit()" />
+                       [value]="minutes()" (input)="onManualEdit(minutes, $event)" />
                 <span class="text-muted">min</span>
               </div>
             </div>
@@ -59,7 +58,7 @@ const MAX_MINUTES = 1440;
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-muted self-center text-xs">quick:</span>
             @for (pick of quickPicks; track pick.minutes) {
-              <span class="pill" [class.active]="selectedPick === pick.minutes" (click)="applyPick(pick)">
+              <span class="pill" [class.active]="selectedPick() === pick.minutes" (click)="applyPick(pick)">
                 {{ pick.label }}
               </span>
             }
@@ -71,7 +70,7 @@ const MAX_MINUTES = 1440;
 
           <div class="mt-1 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" class="btn" (click)="cancel.emit()">Cancel</button>
-            <button type="button" class="btn primary" [disabled]="!isValid" (click)="submit()">
+            <button type="button" class="btn primary" [disabled]="!isValid()" (click)="submit()">
               Save entry
             </button>
           </div>
@@ -88,10 +87,18 @@ export class LogTimeModalComponent implements OnInit {
   readonly save = output<LogTimePayload>();
   readonly cancel = output<void>();
 
-  protected hours = 0;
-  protected minutes = 0;
-  protected logDate = '';
-  protected selectedPick: number | null = null;
+  protected readonly hours = signal(0);
+  protected readonly minutes = signal(0);
+  protected readonly logDate = signal('');
+  protected readonly selectedPick = signal<number | null>(null);
+
+  /** hours*60 + minutes, treating blank/NaN inputs as 0. */
+  protected readonly totalMinutes = computed(() => (this.hours() || 0) * 60 + (this.minutes() || 0));
+
+  protected readonly isValid = computed(() => {
+    const total = this.totalMinutes();
+    return total >= 1 && total <= MAX_MINUTES && !!this.logDate();
+  });
 
   protected readonly quickPicks: QuickPick[] = [
     { label: '15m', minutes: 15 },
@@ -103,42 +110,25 @@ export class LogTimeModalComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.logDate = this.today();
-  }
-
-  protected get todayMax(): string {
-    return this.today();
-  }
-
-  /** hours*60 + minutes, treating blank/NaN inputs as 0. */
-  get totalMinutes(): number {
-    const hours = Number(this.hours) || 0;
-    const minutes = Number(this.minutes) || 0;
-    return hours * 60 + minutes;
-  }
-
-  get isValid(): boolean {
-    const total = this.totalMinutes;
-    return total >= 1 && total <= MAX_MINUTES && !!this.logDate;
+    this.logDate.set(this.today());
   }
 
   protected applyPick(pick: QuickPick): void {
-    this.hours = Math.floor(pick.minutes / 60);
-    this.minutes = pick.minutes % 60;
-    this.selectedPick = pick.minutes;
+    this.hours.set(Math.floor(pick.minutes / 60));
+    this.minutes.set(pick.minutes % 60);
+    this.selectedPick.set(pick.minutes);
   }
 
-  /** A manual edit deselects the active quick-pick chip. */
-  protected onManualEdit(): void {
-    this.selectedPick = this.totalMinutes;
-    if (!this.quickPicks.some((pick) => pick.minutes === this.selectedPick)) {
-      this.selectedPick = null;
-    }
+  /** Writes the edited field, then deselects the active quick-pick chip if the total no longer matches one. */
+  protected onManualEdit(field: { set(value: number): void }, event: Event): void {
+    field.set((event.target as HTMLInputElement).valueAsNumber || 0);
+    const total = this.totalMinutes();
+    this.selectedPick.set(this.quickPicks.some((pick) => pick.minutes === total) ? total : null);
   }
 
   protected submit(): void {
-    if (this.isValid) {
-      this.save.emit({ minutes: this.totalMinutes, logDate: this.logDate });
+    if (this.isValid()) {
+      this.save.emit({ minutes: this.totalMinutes(), logDate: this.logDate() });
     }
   }
 }
