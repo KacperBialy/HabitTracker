@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { forkJoin } from 'rxjs';
 
 import { TasksService } from '../../core/tasks.service';
+import { AppNavComponent } from '../../core/app-nav.component';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { localDateString } from '../../core/date-utils';
 import { DailyAggregate } from '../../core/models';
@@ -24,6 +25,7 @@ interface TaskVm {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-dashboard',
   imports: [
+    AppNavComponent,
     TimerRingComponent,
     TaskRowComponent,
     NewTaskModalComponent,

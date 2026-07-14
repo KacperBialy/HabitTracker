@@ -17,6 +17,10 @@ export class TasksService {
     return this.http.post<Task>('/api/tasks', { name, color });
   }
 
+  update(taskId: string, name: string, color: TaskColor): Observable<void> {
+    return this.http.put<void>(`/api/tasks/${taskId}`, { name, color });
+  }
+
   delete(taskId: string): Observable<void> {
     return this.http.delete<void>(`/api/tasks/${taskId}`);
   }

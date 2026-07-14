@@ -98,6 +98,10 @@ export class ActiveTimerService implements OnDestroy {
     });
   }
 
+  discard(): void {
+    this.clear();
+  }
+
   private clear(): void {
     this.active.set(null);
     this.stopTicking();

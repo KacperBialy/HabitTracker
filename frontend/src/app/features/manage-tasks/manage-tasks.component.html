@@ -1,0 +1,52 @@
+<div class="min-h-screen bg-paper">
+  <app-nav />
+
+  <div class="shell p-4 sm:p-6 lg:p-7">
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center">
+        <span class="display text-[1.375rem]">Manage tasks</span>
+        <span class="flex-1"></span>
+        <button type="button" class="btn text-[0.8125rem]" (click)="showNewTask.set(true)">+ new task</button>
+      </div>
+
+      @if (loading()) {
+        <div class="text-muted px-1 py-4 text-sm">Loading…</div>
+      } @else if (taskList().length === 0) {
+        <div class="text-muted px-1 py-4 text-sm">No tasks yet — create your first one.</div>
+      } @else {
+        @for (task of taskList(); track task.id) {
+          <div class="flex flex-wrap items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
+                      border-[1.4px] bg-paper px-2.5 py-1.5">
+            <span class="inline-block h-2.5 w-2.5 shrink-0 rounded-[3px]" [style.background]="task.color | taskColorHex"></span>
+            <span class="min-w-0 flex-[1_1_12rem] truncate text-sm">{{ task.name }}</span>
+            <button type="button" class="btn px-2.5 py-1 text-xs"
+                    [attr.aria-label]="'Edit ' + task.name"
+                    (click)="editingTask.set(task)">Edit</button>
+            <button type="button" class="btn danger px-2.5 py-1 text-xs"
+                    [attr.aria-label]="'Delete ' + task.name"
+                    (click)="deletingTask.set(task)">Delete</button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+@if (showNewTask()) {
+  <app-new-task-modal (create)="createTask($event)" (cancel)="showNewTask.set(false)" />
+}
+
+@if (editingTask(); as task) {
+  <app-edit-task-modal
+    [initialName]="task.name"
+    [initialColor]="task.color"
+    (save)="updateTask($event)"
+    (cancel)="editingTask.set(null)" />
+}
+
+@if (deletingTask(); as task) {
+  <app-delete-task-modal
+    [taskName]="task.name"
+    (confirm)="deleteTask()"
+    (cancel)="deletingTask.set(null)" />
+}

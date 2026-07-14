@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 
 import { DashboardComponent } from './dashboard.component';
 import { TasksService } from '../../core/tasks.service';
@@ -34,6 +35,7 @@ describe('DashboardComponent merge', () => {
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
+        provideRouter([]),
         { provide: TasksService, useValue: tasksService },
         { provide: ActiveTimerService, useValue: activeTimerService },
       ],
