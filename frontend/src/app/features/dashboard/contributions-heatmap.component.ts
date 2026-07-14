@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { DailyAggregate } from '../../core/models';
 import { localDateString } from '../../core/date-utils';
@@ -53,6 +53,7 @@ function humanDate(value: string): string {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-contributions-heatmap',
   template: `
     <section>
