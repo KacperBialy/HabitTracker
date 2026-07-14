@@ -72,6 +72,47 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task UpdatingATaskChangesItsNameAndColor()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+
+        var create = await client.PostAsJsonAsync("/api/tasks", new CreateTaskRequest("Reading", TaskColor.Slate));
+        var created = await create.Content.ReadFromJsonAsync<TaskDto>();
+        created.Should().NotBeNull();
+
+        var update = await client.PutAsJsonAsync($"/api/tasks/{created.Id}",
+            new UpdateTaskRequest("Deep reading", TaskColor.Green));
+
+        update.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var list = await client.GetFromJsonAsync<List<TaskDto>>("/api/tasks");
+        var updated = list.Should().ContainSingle().Which;
+        updated.Name.Should().Be("Deep reading");
+        updated.Color.Should().Be(TaskColor.Green);
+    }
+
+    [Fact]
+    public async Task UpdatingAnotherUsersTaskIsRejected()
+    {
+        var owner = Guid.NewGuid();
+        var other = Guid.NewGuid();
+
+        var create = await factory.ClientFor(owner)
+            .PostAsJsonAsync("/api/tasks", new CreateTaskRequest("Owner task"));
+        var created = await create.Content.ReadFromJsonAsync<TaskDto>();
+        created.Should().NotBeNull();
+
+        var update = await factory.ClientFor(other)
+            .PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateTaskRequest("Hijacked", TaskColor.Red));
+
+        update.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var ownerList = await factory.ClientFor(owner)
+            .GetFromJsonAsync<List<TaskDto>>("/api/tasks");
+        ownerList.Should().ContainSingle().Which.Name.Should().Be("Owner task");
+    }
+
+    [Fact]
     public async Task DeletingATaskRemovesItFromTheList()
     {
         var client = factory.ClientFor(Guid.NewGuid());

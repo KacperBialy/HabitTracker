@@ -25,7 +25,11 @@ internal sealed class TaskItem
     public static TaskItem Register(Guid ownerId, string name, TaskColor color, DateTimeOffset now) =>
         new(TaskId.New(), ownerId, name, color, now);
 
-    public void Rename(string name) => Name = name;
+    public void Update(string name, TaskColor color)
+    {
+        Name = name;
+        Color = color;
+    }
 
     public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color);
 }

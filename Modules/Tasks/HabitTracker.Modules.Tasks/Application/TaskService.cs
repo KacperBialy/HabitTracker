@@ -29,13 +29,13 @@ internal sealed class TaskService(
         return tasks.Select(t => t.ToDto()).ToList();
     }
 
-    public async Task<bool> Rename(Guid ownerId, TaskId id, RenameTaskRequest request, CancellationToken ct = default)
+    public async Task<bool> Update(Guid ownerId, TaskId id, UpdateTaskRequest request, CancellationToken ct = default)
     {
         var task = await db.Tasks.SingleOrDefaultAsync(t => t.Id == id && t.OwnerId == ownerId, ct);
         if (task is null)
             return false;
 
-        task.Rename(request.Name);
+        task.Update(request.Name, request.Color);
         await db.SaveChangesAsync(ct);
         return true;
     }

@@ -20,10 +20,10 @@ public static class TaskEndpoints
         group.MapGet("/", async (ITaskService tasks, HttpContext http, CancellationToken ct) =>
             Results.Ok(await tasks.ListForOwner(http.User.GetUserId(), ct)));
 
-        group.MapPut("/{id:guid}", async (Guid id, RenameTaskRequest request, ITaskService tasks, HttpContext http, CancellationToken ct) =>
+        group.MapPut("/{id:guid}", async (Guid id, UpdateTaskRequest request, ITaskService tasks, HttpContext http, CancellationToken ct) =>
         {
-            var renamed = await tasks.Rename(http.User.GetUserId(), new TaskId(id), request, ct);
-            return renamed ? Results.NoContent() : Results.NotFound();
+            var updated = await tasks.Update(http.User.GetUserId(), new TaskId(id), request, ct);
+            return updated ? Results.NoContent() : Results.NotFound();
         });
 
         group.MapDelete("/{id:guid}", async (Guid id, ITaskService tasks, HttpContext http, CancellationToken ct) =>
