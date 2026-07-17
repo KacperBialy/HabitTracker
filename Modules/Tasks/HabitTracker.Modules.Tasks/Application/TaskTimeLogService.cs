@@ -68,18 +68,19 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
         return new YearAggregatesDto(targetYear, days);
     }
 
-    public async Task<IReadOnlyList<DayEntryDto>> GetDayEntries(Guid ownerId, DateOnly date, CancellationToken ct = default)
+    public async Task<IReadOnlyList<DayEntryDto>> GetEntries(Guid ownerId, DateOnly from, DateOnly to, CancellationToken ct = default)
     {
         return await db.TimeLogs
             .AsNoTracking()
-            .Where(log => log.OwnerId == ownerId && log.LogDate == date)
+            .Where(log => log.OwnerId == ownerId && log.LogDate >= from && log.LogDate <= to)
             .Join(
                 db.Tasks,
                 log => log.TaskId,
                 task => task.Id,
                 (log, task) => new { log, task })
-            .OrderByDescending(row => row.log.Minutes)
-            .Select(row => new DayEntryDto(row.log.TaskId, row.task.Name, row.log.Minutes, row.task.Color))
+            .OrderByDescending(row => row.log.LogDate)
+            .ThenByDescending(row => row.log.Minutes)
+            .Select(row => new DayEntryDto(row.log.LogDate, row.log.TaskId, row.task.Name, row.log.Minutes, row.task.Color))
             .ToListAsync(ct);
     }
 }

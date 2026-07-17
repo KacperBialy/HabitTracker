@@ -8,6 +8,7 @@ import { TasksService } from '../../core/tasks.service';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { Task, DayEntry } from '../../core/models';
 import { TaskColor } from '../../core/task-colors';
+import { localDateString } from '../../core/date-utils';
 
 describe('DashboardComponent merge', () => {
   let listCalls = 0;
@@ -19,7 +20,7 @@ describe('DashboardComponent merge', () => {
         listCalls++;
         return of(tasks);
       },
-      dayEntries: () => of(entries),
+      entries: () => of(entries),
       create: () => of(tasks[0]),
       logTime: () =>
         of({ id: 'log1', taskId: tasks[0].id, ownerId: 'o', minutes: 45, logDate: '2026-06-21' }),
@@ -47,7 +48,7 @@ describe('DashboardComponent merge', () => {
   }
 
   const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z', color: TaskColor.Slate });
-  const entry = (taskId: string, minutes: number): DayEntry => ({ taskId, taskName: '', minutes, taskColor: TaskColor.Slate });
+  const entry = (taskId: string, minutes: number): DayEntry => ({ date: localDateString(), taskId, taskName: '', minutes, taskColor: TaskColor.Slate });
 
   it('maps tasks with no entries to zero minutes', () => {
     const cmp = setup([task('a', 'Reading')], []);

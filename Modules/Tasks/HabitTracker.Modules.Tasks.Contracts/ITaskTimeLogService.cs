@@ -13,5 +13,5 @@ public interface ITaskTimeLogService
 
     Task<YearAggregatesDto> GetYearAggregates(Guid ownerId, int? year, CancellationToken ct = default);
 
-    Task<IReadOnlyList<DayEntryDto>> GetDayEntries(Guid ownerId, DateOnly date, CancellationToken ct = default);
+    Task<IReadOnlyList<DayEntryDto>> GetEntries(Guid ownerId, DateOnly from, DateOnly to, CancellationToken ct = default);
 }

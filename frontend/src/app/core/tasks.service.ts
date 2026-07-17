@@ -25,8 +25,8 @@ export class TasksService {
     return this.http.delete<void>(`/api/tasks/${taskId}`);
   }
 
-  dayEntries(date: string): Observable<DayEntry[]> {
-    return this.http.get<DayEntry[]>(`/api/tasks/timelogs/aggregates/${date}`);
+  entries(from: string, to: string): Observable<DayEntry[]> {
+    return this.http.get<DayEntry[]>('/api/tasks/timelogs/entries', { params: { from, to } });
   }
 
   logTime(taskId: string, minutes: number, logDate: string): Observable<TimeLog> {

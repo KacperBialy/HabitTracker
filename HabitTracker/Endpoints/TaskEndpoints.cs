@@ -46,8 +46,10 @@ public static class TaskEndpoints
         group.MapGet("/timelogs/aggregates", async (int? year, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
             Results.Ok(await timeLogs.GetYearAggregates(http.User.GetUserId(), year, ct)));
 
-        group.MapGet("/timelogs/aggregates/{date}", async (DateOnly date, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
-            Results.Ok(await timeLogs.GetDayEntries(http.User.GetUserId(), date, ct)));
+        group.MapGet("/timelogs/entries", async (DateOnly from, DateOnly to, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
+            from > to
+                ? Results.BadRequest("'from' must be on or before 'to'.")
+                : Results.Ok(await timeLogs.GetEntries(http.User.GetUserId(), from, to, ct)));
 
         group.MapDelete("/{taskId:guid}/timelogs/{logId:guid}", async (Guid taskId, Guid logId, ITaskTimeLogService timeLogs, HttpContext http, CancellationToken ct) =>
         {

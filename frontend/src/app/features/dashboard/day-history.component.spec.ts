@@ -1,16 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { DayHistoryComponent } from './day-history.component';
-import { TasksService } from '../../core/tasks.service';
-import { DailyAggregate, DayEntry } from '../../core/models';
+import { DayEntry } from '../../core/models';
 import { TaskColor } from '../../core/task-colors';
 
 interface HistoryRow {
   date: string;
   label: string;
   total: string;
-  entryCount: number;
+  entries: DayEntry[];
 }
 
 /** Reach into the protected `rows()` computed for assertions. */
@@ -19,109 +18,76 @@ function rowsOf(component: DayHistoryComponent): HistoryRow[] {
 }
 
 describe('DayHistoryComponent', () => {
-  let dayEntriesCalls: string[];
-  let entriesByDate: Record<string, DayEntry[]>;
-
-  type Instance = DayHistoryComponent & {
-    toggle: (date: string) => void;
-    expanded: () => ReadonlySet<string>;
-    entriesFor: (date: string) => DayEntry[] | undefined;
-  };
-
-  function buildFixture(days: DailyAggregate[]) {
-    dayEntriesCalls = [];
-    entriesByDate = {};
-    const tasksService: Partial<TasksService> = {
-      dayEntries: (date: string) => {
-        dayEntriesCalls.push(date);
-        return of(entriesByDate[date] ?? []);
-      },
-    };
-
-    TestBed.configureTestingModule({
-      providers: [{ provide: TasksService, useValue: tasksService }],
-    });
-
+  function build(entries: DayEntry[]): DayHistoryComponent {
+    TestBed.configureTestingModule({});
     const fixture = TestBed.createComponent(DayHistoryComponent);
-    fixture.componentRef.setInput('days', days);
+    fixture.componentRef.setInput('entries', entries);
     fixture.detectChanges();
-    return fixture;
+    return fixture.componentInstance;
   }
 
-  function build(days: DailyAggregate[]): Instance {
-    return buildFixture(days).componentInstance as Instance;
-  }
-
-  const day = (date: string, totalMinutes: number, entryCount: number): DailyAggregate => ({
+  const entry = (date: string, taskId: string, taskName: string, minutes: number, taskColor = TaskColor.Green): DayEntry => ({
     date,
-    totalMinutes,
-    entryCount,
+    taskId,
+    taskName,
+    minutes,
+    taskColor,
   });
 
-  it('lists only days with entries, newest first', () => {
+  it('groups entries per day, newest day first', () => {
     const cmp = build([
-      day('2026-07-10', 30, 1),
-      day('2026-07-14', 90, 2),
-      day('2026-07-12', 0, 0), // no entries — excluded
+      entry('2026-07-10', 'a', 'Reading', 30),
+      entry('2026-07-14', 'a', 'Reading', 45),
+      entry('2026-07-14', 'b', 'Workout', 20),
     ]);
     expect(rowsOf(cmp).map((row) => row.date)).toEqual(['2026-07-14', '2026-07-10']);
+    expect(rowsOf(cmp)[0].entries.length).toBe(2);
   });
 
-  it('formats the total as a compact duration', () => {
-    const cmp = build([day('2026-07-14', 135, 2)]);
+  it('formats each day total as a compact duration', () => {
+    const cmp = build([
+      entry('2026-07-14', 'a', 'Reading', 90),
+      entry('2026-07-14', 'b', 'Workout', 45),
+    ]);
     expect(rowsOf(cmp)[0].total).toBe('2h 15m');
   });
 
   it('renders an empty list when nothing was logged', () => {
-    const cmp = build([day('2026-07-12', 0, 0)]);
+    const cmp = build([]);
     expect(rowsOf(cmp).length).toBe(0);
   });
 
-  it('lazily fetches a day breakdown on first expand and caches it', () => {
-    const cmp = build([day('2026-07-14', 90, 1)]);
-    entriesByDate['2026-07-14'] = [{ taskId: 'a', taskName: 'Reading', minutes: 90, taskColor: TaskColor.Green }];
+  it('groups multiple entries for the same task within a day, summing minutes, biggest first', () => {
+    const cmp = build([
+      entry('2026-07-14', 'a', 'Reading', 30),
+      entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red),
+      entry('2026-07-14', 'a', 'Reading', 30),
+    ]);
 
-    expect(cmp.entriesFor('2026-07-14')).toBeUndefined();
-
-    cmp.toggle('2026-07-14');
-    expect(cmp.expanded().has('2026-07-14')).toBe(true);
-    expect(cmp.entriesFor('2026-07-14')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 90, taskColor: TaskColor.Green }]);
-    expect(dayEntriesCalls).toEqual(['2026-07-14']);
-
-    // Collapse then re-expand — must not refetch.
-    cmp.toggle('2026-07-14');
-    cmp.toggle('2026-07-14');
-    expect(dayEntriesCalls).toEqual(['2026-07-14']);
-  });
-
-  it('groups multiple entries for the same task, summing minutes, biggest first', () => {
-    const cmp = build([day('2026-07-14', 105, 3)]);
-    entriesByDate['2026-07-14'] = [
-      { taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Green },
-      { taskId: 'b', taskName: 'Workout', minutes: 45, taskColor: TaskColor.Red },
-      { taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Green },
-    ];
-
-    cmp.toggle('2026-07-14');
-
-    expect(cmp.entriesFor('2026-07-14')).toEqual([
-      { taskId: 'a', taskName: 'Reading', minutes: 60, taskColor: TaskColor.Green },
-      { taskId: 'b', taskName: 'Workout', minutes: 45, taskColor: TaskColor.Red },
+    expect(rowsOf(cmp)[0].entries).toEqual([
+      entry('2026-07-14', 'a', 'Reading', 60),
+      entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red),
     ]);
   });
 
-  it('auto-expands and fetches the day when selectedDate changes (heatmap click)', () => {
-    const fixture = buildFixture([day('2026-07-14', 90, 1), day('2026-07-10', 30, 1)]);
-    entriesByDate['2026-07-10'] = [{ taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Slate }];
-    const cmp = fixture.componentInstance as Instance;
-
-    expect(cmp.expanded().size).toBe(0);
-
-    fixture.componentRef.setInput('selectedDate', '2026-07-10');
-    fixture.detectChanges();
-
-    expect(cmp.expanded().has('2026-07-10')).toBe(true);
-    expect(dayEntriesCalls).toEqual(['2026-07-10']);
-    expect(cmp.entriesFor('2026-07-10')).toEqual([{ taskId: 'a', taskName: 'Reading', minutes: 30, taskColor: TaskColor.Slate }]);
+  it('labels today, yesterday, same-year and prior-year days', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 17)); // local Jul 17, 2026
+    try {
+      const cmp = build([
+        entry('2026-07-17', 'a', 'Reading', 30),
+        entry('2026-07-16', 'a', 'Reading', 30),
+        entry('2026-07-10', 'a', 'Reading', 30),
+        entry('2025-12-31', 'a', 'Reading', 30),
+      ]);
+      expect(rowsOf(cmp).map((row) => row.label)).toEqual([
+        'Today · Fri, Jul 17',
+        'Yesterday · Thu, Jul 16',
+        'Fri, Jul 10',
+        'Wed, Dec 31, 2025',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

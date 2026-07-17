@@ -1,16 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input } from '@angular/core';
 import { formatDate } from '@angular/common';
 
-import { DailyAggregate, DayEntry } from '../../core/models';
-import { formatMinutes } from '../../core/date-utils';
+import { DayEntry } from '../../core/models';
+import { formatMinutes, localDateString } from '../../core/date-utils';
 import { TaskColorHexPipe } from '../../core/task-color-hex.pipe';
-import { TasksService } from '../../core/tasks.service';
 
 interface HistoryRow {
   date: string;
   label: string;
   total: string;
-  entryCount: number;
+  entries: DayEntry[];
 }
 
 @Component({
@@ -27,124 +26,112 @@ interface HistoryRow {
       @if (rows().length === 0) {
         <div class="text-muted px-1 py-4 text-sm">No history yet — log some time to see it here.</div>
       } @else {
-        <div class="flex flex-col gap-1.5">
-          @for (row of rows(); track row.date) {
-              <div class="rounded-[6px_9px_5px_8px/8px_5px_9px_6px] border-[1.4px] bg-paper"
-                   [class.border-accent]="row.date === selectedDate()"
-                   [class.ring-2]="row.date === selectedDate()"
-                   [class.ring-accent]="row.date === selectedDate()">
-                <button type="button"
-                        class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left"
-                        [attr.aria-expanded]="expanded().has(row.date)"
-                        (click)="toggle(row.date)">
-                  <span class="text-muted w-4 shrink-0 text-xs">{{ expanded().has(row.date) ? '▾' : '▸' }}</span>
-                  <span class="min-w-0 flex-1 truncate text-sm">{{ row.label }}</span>
-                  <span class="text-muted text-[13px]">{{ row.total }}</span>
-                </button>
+        <div class="relative">
+          <div class="absolute top-4 bottom-4 left-[17px] w-[1.6px] bg-rule/25" aria-hidden="true"></div>
 
-                @if (expanded().has(row.date)) {
-                  <div class="border-t border-rule/15 px-2.5 py-1.5 pl-8">
-                    @if (entriesFor(row.date); as entries) {
-                      @for (entry of entries; track entry.taskId) {
-                        <div class="flex items-center gap-2 py-0.5 text-[13px]">
-                          <span class="inline-block h-2 w-2 shrink-0 rounded-xs"
-                                [style.background]="entry.taskColor | taskColorHex"></span>
-                          <span class="min-w-0 flex-1 truncate">{{ entry.taskName }}</span>
-                          <span class="text-muted">{{ minutesLabel(entry.minutes) }}</span>
-                        </div>
-                      }
-                    } @else {
-                      <div class="text-muted py-0.5 text-[13px]">Loading…</div>
-                    }
+          <div class="flex flex-col gap-3">
+            @for (row of rows(); track row.date) {
+              <div class="flex flex-col gap-1.5" [id]="'history-day-' + row.date">
+                <div class="flex w-full items-center gap-2">
+                  <span class="flex w-9 shrink-0 justify-center">
+                    <span class="z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.6px] bg-paper"
+                          [class.border-rule]="row.date !== selectedDate()"
+                          [class.border-accent]="row.date === selectedDate()"
+                          [class.ring-2]="row.date === selectedDate()"
+                          [class.ring-accent]="row.date === selectedDate()"
+                          [class.text-accent]="row.date === selectedDate()">
+                      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
+                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                    </span>
+                  </span>
+                  <span class="display min-w-0 flex-1 truncate text-[1.15rem]"
+                        [class.text-accent]="row.date === selectedDate()">{{ row.label }}</span>
+                  <span class="text-muted text-[13px]">{{ row.total }}</span>
+                </div>
+
+                @for (entry of row.entries; track entry.taskId) {
+                  <div class="flex items-center gap-2">
+                    <span class="flex w-9 shrink-0 justify-center">
+                      <span class="z-10 inline-block h-4 w-4 rounded-[3px] border-[1.4px] border-rule"
+                            [style.background]="entry.taskColor | taskColorHex"></span>
+                    </span>
+                    <div class="min-w-0 flex-1 rounded-[6px_9px_5px_8px/8px_5px_9px_6px] border-[1.4px] border-rule bg-paper px-3 py-2 text-sm">
+                      Logged <span class="font-semibold">{{ minutesLabel(entry.minutes) }}</span>
+                      on <span class="font-semibold">{{ entry.taskName }}</span>
+                    </div>
                   </div>
                 }
               </div>
-          }
+            }
+          </div>
         </div>
       }
     </section>
   `,
 })
 export class DayHistoryComponent {
-  private readonly tasks = inject(TasksService);
-
-  readonly days = input.required<DailyAggregate[], DailyAggregate[] | null | undefined>({
+  /** Every logged entry in the visible window; the component groups them per day and task. */
+  readonly entries = input.required<DayEntry[], DayEntry[] | null | undefined>({
     transform: (value) => value ?? [],
   });
 
   readonly selectedDate = input<string | null>(null);
 
-  private readonly expandedDates = signal(new Set<string>());
-  private readonly entriesByDate = signal(new Map<string, DayEntry[]>());
-
-  /** The last date auto-expanded via a heatmap click — so we react only to genuine changes. */
-  private autoExpandedDate: string | null = null;
-
   constructor() {
-    // A heatmap day-click flows in through `selectedDate`; expand that day in the list.
+    // A heatmap day-click flows in through `selectedDate`; bring that day into view.
     effect(() => {
       const date = this.selectedDate();
-      if (!date || date === this.autoExpandedDate) return;
-      this.autoExpandedDate = date;
-      this.expand(date);
+      if (!date)
+        return;
+
+      document.getElementById(`history-day-${date}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
     });
   }
 
-  /** Days with logged time, newest first. */
-  protected readonly rows = computed<HistoryRow[]>(() =>
-    this.days()
-      .filter((day) => day.entryCount > 0)
-      .sort((first, second) => second.date.localeCompare(first.date))
-      .map((day) => ({
-        date: day.date,
-        label: formatDate(day.date, 'EEE, MMM d, y', 'en-US'),
-        total: formatMinutes(day.totalMinutes),
-        entryCount: day.entryCount,
-      })),
-  );
+  /** Days with logged time, newest first, each with its per-task breakdown. */
+  protected readonly rows = computed<HistoryRow[]>(() => {
+    const byDate = new Map<string, DayEntry[]>();
+    for (const entry of this.entries()) {
+      const existing = byDate.get(entry.date);
+      if (existing) {
+        existing.push(entry);
+      } else {
+        byDate.set(entry.date, [entry]);
+      }
+    }
 
-  protected expanded(): ReadonlySet<string> {
-    return this.expandedDates();
-  }
-
-  /** Cached per-task breakdown for a date, or undefined while it's still loading. */
-  protected entriesFor(date: string): DayEntry[] | undefined {
-    return this.entriesByDate().get(date);
-  }
+    return [...byDate.entries()]
+      .sort(([firstDate], [secondDate]) => secondDate.localeCompare(firstDate))
+      .map(([date, dayEntries]) => ({
+        date,
+        label: dayLabel(date),
+        total: formatMinutes(dayEntries.reduce((sum, entry) => sum + entry.minutes, 0)),
+        entries: groupByTask(dayEntries),
+      }));
+  });
 
   protected minutesLabel(minutes: number): string {
     return formatMinutes(minutes);
   }
+}
 
-  protected toggle(date: string): void {
-    if (this.expandedDates().has(date)) {
-      const next = new Set(this.expandedDates());
-      next.delete(date);
-      this.expandedDates.set(next);
-    } else {
-      this.expand(date);
-    }
-  }
+/** "Today · Tue, Apr 28" / "Yesterday · …" / "Tue, Apr 28" (year appended only when not the current year). */
+function dayLabel(date: string): string {
+  const now = new Date();
+  const today = localDateString(now);
+  const yesterday = localDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+  const sameYear = date.startsWith(`${now.getFullYear()}-`);
+  const formatted = formatDate(date, sameYear ? 'EEE, MMM d' : 'EEE, MMM d, y', 'en-US');
+  if (date === today)
+    return `Today · ${formatted}`;
 
-  /** Opens a day (idempotent) and lazily loads its breakdown. */
-  private expand(date: string): void {
-    if (this.expandedDates().has(date)) return;
-    const next = new Set(this.expandedDates());
-    next.add(date);
-    this.expandedDates.set(next);
-    this.ensureEntries(date);
-  }
+  if (date === yesterday)
+    return `Yesterday · ${formatted}`;
 
-  /** Lazily fetch a day's breakdown once, group it per task, then cache it. */
-  private ensureEntries(date: string): void {
-    if (this.entriesByDate().has(date)) return;
-
-    this.tasks.dayEntries(date).subscribe((entries) => {
-      const next = new Map(this.entriesByDate());
-      next.set(date, groupByTask(entries));
-      this.entriesByDate.set(next);
-    });
-  }
+  return formatted;
 }
 
 /** Collapses multiple entries for the same task into one, summing minutes, biggest first. */

@@ -5,7 +5,7 @@ import { TasksService } from '../../core/tasks.service';
 import { AppNavComponent } from '../../core/app-nav.component';
 import { ActiveTimerService } from '../../core/active-timer.service';
 import { localDateString } from '../../core/date-utils';
-import { DailyAggregate } from '../../core/models';
+import { DailyAggregate, DayEntry } from '../../core/models';
 import { TaskColor } from '../../core/task-colors';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
@@ -41,6 +41,7 @@ export class DashboardComponent implements OnInit {
 
   protected readonly taskVms = signal<TaskVm[]>([]);
   protected readonly heatmapDays = signal<DailyAggregate[]>([]);
+  protected readonly historyEntries = signal<DayEntry[]>([]);
   protected readonly selectedHistoryDate = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
@@ -76,17 +77,21 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
     // The rolling 365-day window can straddle the year boundary, so fetch this year and last
     // year and let the heatmap slice to the window (the aggregates endpoint is calendar-year).
+    // Entries cover the same two calendar years and feed both today's totals and the history.
     const currentYear = new Date().getFullYear();
+    const today = this.today();
     forkJoin({
       tasks: this.tasks.list(),
-      entries: this.tasks.dayEntries(this.today()),
+      entries: this.tasks.entries(`${currentYear - 1}-01-01`, `${currentYear}-12-31`),
       thisYear: this.tasks.yearAggregates(currentYear),
       lastYear: this.tasks.yearAggregates(currentYear - 1),
     }).subscribe(({ tasks, entries, thisYear, lastYear }) => {
       const minutesByTask = new Map<string, number>();
       for (const entry of entries) {
+        if (entry.date !== today) continue;
         minutesByTask.set(entry.taskId, (minutesByTask.get(entry.taskId) ?? 0) + entry.minutes);
       }
+      this.historyEntries.set(entries);
       this.taskVms.set(
         tasks.map((task) => ({
           id: task.id,

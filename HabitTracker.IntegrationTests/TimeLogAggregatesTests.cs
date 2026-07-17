@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using HabitTracker.IntegrationTests.Configurations;
@@ -97,28 +98,32 @@ public sealed class TimeLogAggregatesTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task DayEntriesReturnEachLogWithItsTaskNameSortedByMinutesDesc()
+    public async Task EntriesReturnEachLogInRangeNewestDayFirstThenByMinutesDesc()
     {
         var client = factory.ClientFor(Guid.NewGuid());
         var piano = await CreateTask(client, "Piano");
         var reading = await CreateTask(client, "Reading");
-        var day = new DateOnly(2026, 6, 19);
+        var day1 = new DateOnly(2026, 6, 18);
+        var day2 = new DateOnly(2026, 6, 19);
 
-        await LogTime(client, reading, 30, day);
-        await LogTime(client, piano, 45, day);
-        // A log on another day must not leak into this day's detail.
-        await LogTime(client, piano, 99, new DateOnly(2026, 6, 18));
+        await LogTime(client, reading, 30, day2);
+        await LogTime(client, piano, 45, day2);
+        await LogTime(client, piano, 99, day1);
+        // A log outside the range must not leak in.
+        await LogTime(client, piano, 10, new DateOnly(2026, 6, 17));
 
-        var entries = await client.GetFromJsonAsync<List<DayEntryDto>>("/api/tasks/timelogs/aggregates/2026-06-19");
+        var entries = await client.GetFromJsonAsync<List<DayEntryDto>>(
+            "/api/tasks/timelogs/entries?from=2026-06-18&to=2026-06-19");
 
         entries.Should().BeEquivalentTo([
-            new DayEntryDto(piano.Id, "Piano", 45, TaskColor.Slate),
-            new DayEntryDto(reading.Id, "Reading", 30, TaskColor.Slate)
+            new DayEntryDto(day2, piano.Id, "Piano", 45, TaskColor.Slate),
+            new DayEntryDto(day2, reading.Id, "Reading", 30, TaskColor.Slate),
+            new DayEntryDto(day1, piano.Id, "Piano", 99, TaskColor.Slate)
         ], options => options.WithStrictOrdering());
     }
 
     [Fact]
-    public async Task DayEntriesAreScopedToTheirOwner()
+    public async Task EntriesAreScopedToTheirOwner()
     {
         var owner = Guid.NewGuid();
         var other = Guid.NewGuid();
@@ -128,10 +133,20 @@ public sealed class TimeLogAggregatesTests(ApiFactory factory)
         await LogTime(ownerClient, task, 45, day);
 
         var otherEntries = await factory.ClientFor(other)
-            .GetFromJsonAsync<List<DayEntryDto>>("/api/tasks/timelogs/aggregates/2026-06-19");
+            .GetFromJsonAsync<List<DayEntryDto>>("/api/tasks/timelogs/entries?from=2026-06-19&to=2026-06-19");
 
         otherEntries.Should().NotBeNull();
         otherEntries.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task EntriesRejectAnInvertedRange()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+
+        var response = await client.GetAsync("/api/tasks/timelogs/entries?from=2026-06-19&to=2026-06-18");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private static async Task LogTime(HttpClient client, TaskDto task, int minutes, DateOnly date) =>

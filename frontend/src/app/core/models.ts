@@ -8,8 +8,9 @@ export interface Task {
   color: TaskColor;
 }
 
-/** Mirrors DayEntryDto from GET /api/tasks/timelogs/aggregates/{date}. */
+/** Mirrors DayEntryDto from GET /api/tasks/timelogs/entries?from=&to= — date is an ISO YYYY-MM-DD string. */
 export interface DayEntry {
+  date: string;
   taskId: string;
   taskName: string;
   minutes: number;
