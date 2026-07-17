@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, input, output, signal } from '@angular/core';
 
+import { TaskColorHexPipe } from '../../core/task-color-hex.pipe';
+import { DEFAULT_TASK_COLOR, TaskColor } from '../../core/task-colors';
+
 interface QuickPick {
   label: string;
   minutes: number;
@@ -16,6 +19,7 @@ const MAX_MINUTES = 1440;
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-log-time-modal',
+  imports: [TaskColorHexPipe],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/15 p-4" (click)="cancel.emit()">
       <div class="box w-full max-w-96 p-4 shadow-[4px_6px_0_rgba(0,0,0,0.12)] sm:p-5" (click)="$event.stopPropagation()">
@@ -27,7 +31,7 @@ const MAX_MINUTES = 1440;
             <div class="mb-1 text-[13px]">Task</div>
             <div class="flex items-center rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
                         border-[1.4px] border-rule px-2.5 py-2">
-              <span class="mr-2 h-3 w-3 rounded-[2px] bg-muted"></span>
+              <span class="mr-2 h-3 w-3 rounded-[2px]" [style.background]="taskColor() | taskColorHex"></span>
               <span class="min-w-0 flex-1 truncate">{{ taskName() }}</span>
             </div>
           </div>
@@ -81,6 +85,7 @@ const MAX_MINUTES = 1440;
 })
 export class LogTimeModalComponent implements OnInit {
   readonly taskName = input('');
+  readonly taskColor = input<TaskColor>(DEFAULT_TASK_COLOR);
   readonly today = input('');
   readonly error = input('');
 

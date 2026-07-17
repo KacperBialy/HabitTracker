@@ -80,6 +80,7 @@
 @if (loggingTask(); as task) {
   <app-log-time-modal
     [taskName]="task.name"
+    [taskColor]="task.color"
     [today]="today()"
     [error]="logError()"
     (save)="logTime($event)"

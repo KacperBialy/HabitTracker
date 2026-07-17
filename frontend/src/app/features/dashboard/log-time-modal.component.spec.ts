@@ -1,6 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 
+import { TASK_COLOR_HEX, TaskColor } from '../../core/task-colors';
 import { LogTimeModalComponent } from './log-time-modal.component';
+
+function hexToCssRgb(hex: string): string {
+  const red = parseInt(hex.slice(1, 3), 16);
+  const green = parseInt(hex.slice(3, 5), 16);
+  const blue = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${red}, ${green}, ${blue})`;
+}
 
 describe('LogTimeModalComponent', () => {
   function modal(): LogTimeModalComponent {
@@ -66,6 +74,18 @@ describe('LogTimeModalComponent', () => {
       expect((cmp as any).minutes()).toBe(30);
       expect((cmp as any).selectedPick()).toBe(90);
     });
+  });
+
+  it('renders the swatch with the task color, not a fixed gray', () => {
+    const fixture = TestBed.createComponent(LogTimeModalComponent);
+    fixture.componentRef.setInput('today', '2026-06-21');
+    fixture.componentRef.setInput('taskColor', TaskColor.Amber);
+    fixture.detectChanges();
+
+    const swatch = fixture.nativeElement.querySelector('span.mr-2') as HTMLElement;
+    const hex = TASK_COLOR_HEX[TaskColor.Amber];
+    // The DOM may normalize the hex to rgb() — accept either form.
+    expect([hex, hexToCssRgb(hex)]).toContain(swatch.style.background);
   });
 
   it('emits the composed minutes and date on save', () => {
