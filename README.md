@@ -18,9 +18,9 @@ Start a timer from any task and watch the ring tick up, or log minutes by hand. 
 
 ### Activity & history
 
-A 365-day heatmap of daily totals, plus a day-by-day history you can expand into a per-task breakdown.
+A 365-day heatmap of daily totals, plus a day-by-day timeline of every logged entry.
 
-![Activity heatmap and expandable history](docs/screenshots/history.png)
+![Activity heatmap and daily history timeline](docs/screenshots/history.png)
 
 ### Manage tasks
 
@@ -43,7 +43,7 @@ Cookie-based, same-origin auth via Google (OIDC).
 - **Built-in timer** — a client-side stopwatch (persisted in `localStorage`, synced across tabs) that rounds up to whole minutes and posts a time log on stop.
 - **Manual logging** — add time entries against any task by hand.
 - **Activity heatmap** — per-day totals for the last 365 days, rendered server-side.
-- **Daily history** — every day newest-first, each expandable into its per-task breakdown.
+- **Daily history** — a timeline of every logged entry, grouped by day newest-first with per-day totals.
 - **Per-task colors** — a bounded palette carried on every task.
 - **Google sign-in** — OIDC authorization-code flow, cookie auth, register-on-first-login.
 
