@@ -69,9 +69,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
+            set -e
             cd /opt/habit
             docker pull ${{ env.IMAGE }}:latest
-            docker rm -f habittracker || true
+            docker rm -f habittracker 2>/dev/null || true
             docker run -d --name habittracker --restart unless-stopped \
               -p 8080:8080 \
               --env-file .env \
