@@ -20,6 +20,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // The real wwwroot only exists after an Angular build; tests must not depend on it.
+        builder.UseWebRoot(CreateStubWebRoot());
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -83,5 +86,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var client = CreateClient();
         client.DefaultRequestHeaders.Add(TestAuthHandler.AnonymousHeader, "true");
         return client;
+    }
+
+    private static string CreateStubWebRoot()
+    {
+        var webRoot = Path.Combine(Path.GetTempPath(), "habittracker-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(webRoot);
+        File.WriteAllText(Path.Combine(webRoot, "index.html"),
+            "<!doctype html><html><body><app-root></app-root></body></html>");
+        return webRoot;
     }
 }

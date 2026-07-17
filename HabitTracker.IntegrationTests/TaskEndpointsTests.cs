@@ -25,8 +25,12 @@ public sealed class TaskEndpointsTests(ApiFactory factory)
 
         var list = await client.GetFromJsonAsync<List<TaskDto>>("/api/tasks");
 
+        // Postgres stores timestamps with microsecond precision; .NET ticks are 100ns.
         list.Should().ContainSingle()
-            .Which.Should().BeEquivalentTo(created);
+            .Which.Should().BeEquivalentTo(created, options => options
+                .Using<DateTimeOffset>(context =>
+                    context.Subject.Should().BeCloseTo(context.Expectation, TimeSpan.FromMicroseconds(1)))
+                .WhenTypeIs<DateTimeOffset>());
     }
 
     [Fact]
