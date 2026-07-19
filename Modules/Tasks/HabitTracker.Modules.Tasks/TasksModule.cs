@@ -24,4 +24,11 @@ public static class TasksModule
 
         return services;
     }
+
+    public static async Task MigrateTasksModuleAsync(this IServiceProvider serviceProvider)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TasksDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
 }

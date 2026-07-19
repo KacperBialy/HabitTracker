@@ -19,6 +19,9 @@ builder.Services.AddTasksModule(builder.Configuration);
 
 var app = builder.Build();
 
+await app.Services.MigrateUsersModuleAsync();
+await app.Services.MigrateTasksModuleAsync();
+
 var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto

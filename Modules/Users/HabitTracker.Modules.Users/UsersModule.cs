@@ -26,4 +26,11 @@ public static class UsersModule
 
         return services;
     }
+
+    public static async Task MigrateUsersModuleAsync(this IServiceProvider serviceProvider)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
 }
