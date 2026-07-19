@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 import { DailyAggregate } from '../../core/models';
 import { localDateString } from '../../core/date-utils';
@@ -62,7 +71,7 @@ function humanDate(value: string): string {
         <span class="text-muted text-[0.875rem]">last 365 days</span>
       </div>
 
-      <div class="overflow-x-auto pb-2">
+      <div #scrollContainer class="overflow-x-auto pb-2">
         <div class="flex min-w-[42rem] flex-col gap-2">
           <div class="flex gap-0.75 pl-7.5">
             @for (label of monthLabels(); track $index) {
@@ -120,7 +129,17 @@ export class ContributionsHeatmapComponent {
 
   readonly selectDay = output<HeatmapCell>();
 
+  private readonly scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+
   protected readonly legendLevels = LEGEND_LEVELS;
+
+  constructor() {
+    afterRenderEffect(() => {
+      this.weeks();
+      const element = this.scrollContainer()?.nativeElement;
+      if (element) element.scrollLeft = element.scrollWidth;
+    });
+  }
 
   /** All cells for the rolling window, split into week columns. */
   protected readonly weeks = computed<HeatmapWeek[]>(() => {
