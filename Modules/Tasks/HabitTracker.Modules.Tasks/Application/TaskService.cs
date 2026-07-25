@@ -4,29 +4,41 @@ using HabitTracker.Modules.Tasks.Contracts.Requests;
 using HabitTracker.Modules.Tasks.Domain;
 using HabitTracker.Modules.Tasks.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TimeProvider = System.TimeProvider;
 
 namespace HabitTracker.Modules.Tasks.Application;
 
 internal sealed class TaskService(
     TasksDbContext db,
-    TimeProvider clock) : ITaskService
+    TimeProvider clock,
+    IMemoryCache cache) : ITaskService
 {
     public async Task<TaskDto> Create(Guid ownerId, CreateTaskRequest request, CancellationToken ct = default)
     {
         var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow());
         db.Tasks.Add(task);
         await db.SaveChangesAsync(ct);
+
+        InvalidateOwnerCache(ownerId);
+
         return task.ToDto();
     }
 
     public async Task<IReadOnlyList<TaskDto>> ListForOwner(Guid ownerId, CancellationToken ct = default)
     {
-        var tasks = await db.Tasks.AsNoTracking()
-            .Where(t => t.OwnerId == ownerId)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync(ct);
-        return tasks.Select(t => t.ToDto()).ToList();
+        var tasks = await cache.GetOrCreateAsync(TaskCacheKeys.TasksForOwner(ownerId), async _ =>
+        {
+            var entities = await db.Tasks.AsNoTracking()
+                .Where(task => task.OwnerId == ownerId)
+                .OrderByDescending(task => task.CreatedAt)
+                .ToListAsync(ct);
+
+            return entities.Select(entity => entity.ToDto())
+                .ToList();
+        });
+
+        return tasks ?? [];
     }
 
     public async Task<bool> Update(Guid ownerId, TaskId id, UpdateTaskRequest request, CancellationToken ct = default)
@@ -37,6 +49,9 @@ internal sealed class TaskService(
 
         task.Update(request.Name, request.Color);
         await db.SaveChangesAsync(ct);
+
+        InvalidateOwnerCache(ownerId);
+
         return true;
     }
 
@@ -49,6 +64,11 @@ internal sealed class TaskService(
         db.Tasks.Remove(task);
         await db.SaveChangesAsync(ct);
 
+        InvalidateOwnerCache(ownerId);
+
         return true;
     }
+
+    private void InvalidateOwnerCache(Guid ownerId) 
+        => cache.Remove(TaskCacheKeys.TasksForOwner(ownerId));
 }

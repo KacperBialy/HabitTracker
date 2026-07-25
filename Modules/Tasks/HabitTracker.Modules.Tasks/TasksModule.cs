@@ -22,6 +22,8 @@ public static class TasksModule
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped<ITaskTimeLogService, TaskTimeLogService>();
 
+        services.AddMemoryCache();
+
         return services;
     }
 
