@@ -4,7 +4,7 @@ import { forkJoin } from 'rxjs';
 import { TasksService } from '../../core/tasks.service';
 import { AppNavComponent } from '../../core/app-nav.component';
 import { ActiveTimerService } from '../../core/active-timer.service';
-import { localDateString } from '../../core/date-utils';
+import { formatMinutes, localDateString } from '../../core/date-utils';
 import { DailyAggregate, DayEntry } from '../../core/models';
 import { TaskColor } from '../../core/task-colors';
 import { TimerRingComponent } from './timer-ring.component';
@@ -68,7 +68,7 @@ export class DashboardComponent implements OnInit {
 
   protected readonly heroSaveNote = computed(() => {
     const minutes = Math.max(1, Math.round(this.timer.elapsedSeconds() / 60));
-    return `Stopping saves ${minutes} min to today's log.`;
+    return `Stopping saves ${formatMinutes(minutes)} to today's log.`;
   });
 
   ngOnInit(): void {
@@ -146,9 +146,12 @@ export class DashboardComponent implements OnInit {
   }
 
   private formatElapsed(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${`${seconds}`.padStart(2, '0')}`;
+    const paddedSeconds = `${seconds}`.padStart(2, '0');
+    if (hours === 0) return `${minutes}:${paddedSeconds}`;
+    return `${hours}:${`${minutes}`.padStart(2, '0')}:${paddedSeconds}`;
   }
 
   /** Local date as YYYY-MM-DD for the day-aggregates endpoint. */

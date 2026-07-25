@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 
 import { DailyAggregate } from '../../core/models';
-import { localDateString } from '../../core/date-utils';
+import { formatMinutes, localDateString } from '../../core/date-utils';
 
 export interface HeatmapCell {
   date: string;
@@ -200,6 +200,6 @@ export class ContributionsHeatmapComponent {
   protected tooltip(cell: HeatmapCell): string {
     const when = humanDate(cell.date);
     if (cell.minutes <= 0) return `No activity  ${when}`;
-    return `${cell.minutes} min (${cell.entryCount} ${cell.entryCount === 1 ? 'entry' : 'entries'}) — ${when}`;
+    return `${formatMinutes(cell.minutes)} (${cell.entryCount} ${cell.entryCount === 1 ? 'entry' : 'entries'}) — ${when}`;
   }
 }
