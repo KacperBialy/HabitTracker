@@ -1,8 +1,8 @@
 using HabitTracker.Modules.Users.Contracts;
 using HabitTracker.Modules.Users.Contracts.Models;
+using HabitTracker.Modules.Users.Contracts.Events;
 using HabitTracker.Modules.Users.Contracts.Requests;
 using HabitTracker.Modules.Users.Domain;
-using HabitTracker.Modules.Users.Domain.Events;
 using HabitTracker.Modules.Users.Persistence;
 using HabitTracker.SharedKernel.Events;
 using Microsoft.EntityFrameworkCore;

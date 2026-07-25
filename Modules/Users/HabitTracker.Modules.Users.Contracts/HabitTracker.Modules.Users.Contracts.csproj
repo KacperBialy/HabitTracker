@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\HabitTracker.SharedKernel\HabitTracker.SharedKernel.csproj" />
+  </ItemGroup>
+
 </Project>
