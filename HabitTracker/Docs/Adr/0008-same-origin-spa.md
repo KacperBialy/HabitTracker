@@ -14,7 +14,7 @@ The frontend lives in a sibling `frontend/` directory at the repository root —
 
 ```
 HabitTracker/
-├── HabitTracker.sln
+├── HabitTracker.slnx
 ├── HabitTracker/        ← API host
 ├── Modules/
 ├── compose.yaml

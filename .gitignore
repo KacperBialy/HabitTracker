@@ -9,3 +9,6 @@ riderModule.iml
 
 # Angular build output served by the host (generated from frontend/ via `ng build`)
 /HabitTracker/wwwroot/
+
+# Rider per-user settings
+*.DotSettings.user

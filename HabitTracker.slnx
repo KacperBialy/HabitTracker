@@ -1,0 +1,26 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Tasks/">
+    <File Path="Modules/Tasks/README.md" />
+    <Project Path="Modules/Tasks/HabitTracker.Modules.Tasks.Contracts/HabitTracker.Modules.Tasks.Contracts.csproj" />
+    <Project Path="Modules/Tasks/HabitTracker.Modules.Tasks/HabitTracker.Modules.Tasks.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Users/">
+    <File Path="Modules/Users/README.md" />
+    <Project Path="Modules/Users/HabitTracker.Modules.Users.Contracts/HabitTracker.Modules.Users.Contracts.csproj" />
+    <Project Path="Modules/Users/HabitTracker.Modules.Users/HabitTracker.Modules.Users.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="CLAUDE.md" />
+    <File Path="compose.yaml" />
+  </Folder>
+  <Project Path="HabitTracker.Authentication/HabitTracker.Authentication.csproj" />
+  <Project Path="HabitTracker.IntegrationTests/HabitTracker.IntegrationTests.csproj" />
+  <Project Path="HabitTracker.SharedKernel/HabitTracker.SharedKernel.csproj" />
+  <Project Path="HabitTracker/HabitTracker.csproj" />
+</Solution>
