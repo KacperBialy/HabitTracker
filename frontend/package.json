@@ -20,6 +20,7 @@
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/kalam": "^5.2.8",
     "@fontsource/patrick-hand": "^5.2.8",
+    "chart.js": "^4.5.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

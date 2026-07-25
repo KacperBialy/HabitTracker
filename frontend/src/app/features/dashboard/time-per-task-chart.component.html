@@ -1,0 +1,35 @@
+<section>
+  <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <span class="display text-[1.75rem]">Time per task</span>
+    <span class="text-muted text-[0.875rem]">last {{ rangeDays() }} days</span>
+    <span class="flex-1"></span>
+    <div class="flex items-center gap-2 self-center">
+      @for (option of rangeOptions; track option) {
+        <span class="pill" [class.active]="rangeDays() === option" (click)="rangeDays.set(option)">
+          {{ option }}d
+        </span>
+      }
+    </div>
+  </div>
+
+  <div class="relative h-64 sm:h-72">
+    <canvas #chartCanvas role="img" [attr.aria-label]="chartAriaLabel()"></canvas>
+    @if (!hasData()) {
+      <div class="text-muted absolute inset-0 flex items-center justify-center text-sm">
+        No time logged in this period.
+      </div>
+    }
+  </div>
+
+  <!-- Legend -->
+  @if (legendItems().length > 0) {
+    <div class="text-muted mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px]">
+      @for (item of legendItems(); track $index) {
+        <span class="flex items-center gap-1.5">
+          <span class="h-3 w-3 rounded-[2px]" [style.background]="item.color"></span>
+          <span>{{ item.label }}</span>
+        </span>
+      }
+    </div>
+  }
+</section>
