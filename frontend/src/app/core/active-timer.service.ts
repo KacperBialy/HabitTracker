@@ -1,12 +1,14 @@
-import { Injectable, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Injectable, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { Observable } from 'rxjs';
 
 import { TasksService } from './tasks.service';
-import { localDateString } from './date-utils';
+import { formatMinutes, localDateString } from './date-utils';
 
 const STORAGE_KEY = 'habit-tracker.active-timer';
 const TICK_MS = 1000;
 const MIN_LOGGABLE_MINUTES = 1;
+const DEFAULT_TITLE = 'habit.';
 
 interface StoredTimer {
   taskId: string;
@@ -23,6 +25,7 @@ export interface ActiveTimerSnapshot {
 @Injectable({ providedIn: 'root' })
 export class ActiveTimerService implements OnDestroy {
   private readonly tasksService = inject(TasksService);
+  private readonly titleService = inject(Title);
 
   private readonly active = signal<ActiveTimerSnapshot | null>(this.readStorage());
   private readonly nowMs = signal<number>(Date.now());
@@ -40,6 +43,17 @@ export class ActiveTimerService implements OnDestroy {
   constructor() {
     if (this.active()) this.ensureTicking();
     window.addEventListener('storage', this.onStorageEvent);
+
+    effect(() => {
+      const timer = this.active();
+      if (!timer) {
+        this.titleService.setTitle(DEFAULT_TITLE);
+        return;
+      }
+      const elapsedMinutes = Math.floor(this.elapsedSeconds() / 60);
+      const duration = formatMinutes(elapsedMinutes) || '0m';
+      this.titleService.setTitle(`${duration} · ${timer.taskName} — ${DEFAULT_TITLE}`);
+    });
   }
 
   ngOnDestroy(): void {
