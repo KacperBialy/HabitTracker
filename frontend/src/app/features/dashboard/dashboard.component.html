@@ -69,6 +69,10 @@
   </div>
 
   <div class="shell px-4 pb-6 sm:px-6 sm:pb-7 lg:px-7">
+    <app-task-share-chart [entries]="historyEntries()" />
+  </div>
+
+  <div class="shell px-4 pb-6 sm:px-6 sm:pb-7 lg:px-7">
     <app-time-per-task-chart [entries]="historyEntries()" />
   </div>
 

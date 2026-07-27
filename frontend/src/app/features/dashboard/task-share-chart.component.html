@@ -1,0 +1,45 @@
+<section>
+  <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <span class="display text-[1.75rem]">Task share</span>
+    <span class="text-muted text-[0.875rem]">last {{ rangeDays() }} days</span>
+    <span class="flex-1"></span>
+    <div class="flex items-center gap-2 self-center">
+      @for (option of rangeOptions; track option.days) {
+        <span class="pill" [class.active]="rangeDays() === option.days" (click)="rangeDays.set(option.days)">
+          {{ option.label }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-7">
+    <div class="relative h-56 w-56 shrink-0">
+      <canvas #donutCanvas role="img" [attr.aria-label]="chartAriaLabel()"></canvas>
+      @if (hasData()) {
+        <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span class="display text-[1.5rem] leading-none">{{ totalLabel() }}</span>
+          <span class="text-muted text-[0.75rem]">this {{ rangeLabel() }}</span>
+        </div>
+      } @else {
+        <div class="text-muted absolute inset-0 flex items-center justify-center text-center text-sm">
+          No time logged in this period.
+        </div>
+      }
+    </div>
+
+    <!-- Legend / breakdown -->
+    @if (legendItems().length > 0) {
+      <div class="flex w-full flex-col gap-1.5 text-[0.8125rem]">
+        @for (item of legendItems(); track $index) {
+          <div class="flex items-center gap-2">
+            <span class="h-3 w-3 shrink-0 rounded-full" [style.background]="item.color"></span>
+            <span class="truncate">{{ item.label }}</span>
+            <span class="flex-1"></span>
+            <span class="text-muted">{{ item.duration }}</span>
+            <span class="w-10 text-right">{{ item.share }}%</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

@@ -14,6 +14,7 @@ import { LogTimeModalComponent, LogTimePayload } from './log-time-modal.componen
 import { ContributionsHeatmapComponent } from './contributions-heatmap.component';
 import { DayHistoryComponent } from './day-history.component';
 import { TimePerTaskChartComponent } from './time-per-task-chart.component';
+import { TaskShareChartComponent } from './task-share-chart.component';
 
 interface TaskVm {
   id: string;
@@ -33,6 +34,7 @@ interface TaskVm {
     LogTimeModalComponent,
     ContributionsHeatmapComponent,
     TimePerTaskChartComponent,
+    TaskShareChartComponent,
     DayHistoryComponent,
   ],
   templateUrl: './dashboard.component.html',
