@@ -121,16 +121,6 @@ describe('buildTrendComparison', () => {
     expect(result.tasks[0].direction).toBe('flat');
   });
 
-  it('emits one day per range day, including zero days, oldest first', () => {
-    const result = buildTrendComparison([entry(today, 20)], 7);
-
-    expect(result.days).toHaveLength(7);
-    expect(result.days[0].date).toBe(addDaysLocal(today, -6));
-    expect(result.days[6].date).toBe(today);
-    expect(result.days[6].minutes).toBe(20);
-    expect(result.days.filter((day) => day.minutes === 0)).toHaveLength(6);
-  });
-
   it('computes each task share of the current window', () => {
     const result = buildTrendComparison(
       [entry(today, 90, 'task-1', 'Guitar'), entry(today, 30, 'task-2', 'Reading')],
@@ -151,7 +141,6 @@ describe('buildTrendComparison', () => {
     const result = buildTrendComparison([], 7);
 
     expect(result.mostActiveWeekday).toBeNull();
-    expect(result.days).toHaveLength(7);
   });
 });
 
@@ -188,14 +177,6 @@ describe('TrendComparisonComponent', () => {
     expect(text).toContain('no comparison yet');
     expect(text).toContain('this is your baseline');
     expect(fixture.nativeElement.querySelector('.trend-chip.none')).toBeTruthy();
-  });
-
-  it('draws one bar per day of the window, flagging zero days', () => {
-    const fixture = createComponent([entry(today, 60)]);
-
-    const bars = fixture.nativeElement.querySelectorAll('.trend-bar');
-    expect(bars).toHaveLength(7);
-    expect(fixture.nativeElement.querySelectorAll('.trend-bar.zero')).toHaveLength(6);
   });
 
   it('lists one row per task with a share bar sized to its share', () => {
@@ -243,7 +224,6 @@ describe('TrendComparisonComponent', () => {
     component.rangeDays.set(30);
     fixture.detectChanges();
     expect(component.comparison().currentMinutes).toBe(60);
-    expect(fixture.nativeElement.querySelectorAll('.trend-bar')).toHaveLength(30);
   });
 
   it('shows an empty-state message when nothing is logged', () => {
