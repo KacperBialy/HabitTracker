@@ -16,6 +16,12 @@ Start a timer from any task and watch the ring tick up, or log minutes by hand. 
 
 ![Dashboard with a running timer](docs/screenshots/dashboard-timer.png)
 
+### Trend — this week vs. last
+
+Total time in the last 7 (or 30) days against the window right before it, with the percentage swing, plus a per-task ranking showing each task's share and its own change — `new` where there's no baseline to compare against.
+
+![Trend comparison widget](docs/screenshots/trend.png)
+
 ### Task share
 
 A donut chart of how your time splits across tasks over the last week or month, with the window's total in the middle and a name / duration / share breakdown beside it.
@@ -54,6 +60,7 @@ Cookie-based, same-origin auth via Google (OIDC).
 
 - **Built-in timer** — a client-side stopwatch (persisted in `localStorage`, synced across tabs) that rounds up to whole minutes and posts a time log on stop.
 - **Manual logging** — add time entries against any task by hand.
+- **Trend comparison** — the last 7 or 30 days measured against the preceding window, overall and per task, with the busiest weekday.
 - **Task-share donut** — a Chart.js doughnut of each task's share of your time over the last week or month, with per-task durations and percentages.
 - **Time-per-task chart** — stacked daily bars (Chart.js) of time per task, over the last 7 / 30 / 90 days.
 - **Activity heatmap** — per-day totals for the last 365 days, rendered server-side.
