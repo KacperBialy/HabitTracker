@@ -165,7 +165,6 @@ input[type="number"] {
 
   display: block;
   width: 100%;
-  max-width: 640px;
   background: #fffdf8;
   border: 1px solid var(--trend-line);
   border-radius: 18px;
@@ -276,9 +275,10 @@ input[type="number"] {
 
 .trend-task {
   display: grid;
-  grid-template-columns: 12px minmax(90px, max-content) 1fr max-content 64px;
+  grid-template-columns: 12px minmax(90px, max-content) minmax(0, 380px) max-content 64px;
   align-items: center;
   gap: 12px;
+  justify-content: start;
 }
 
 .trend-dot {
