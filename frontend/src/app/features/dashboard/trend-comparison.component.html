@@ -17,18 +17,11 @@
     </div>
   </div>
 
-  <!-- ── Hero: total + delta + daily bars ── -->
-  <div class="trend-hero">
-    <div class="trend-hero-nums" [attr.aria-label]="ariaLabel()">
-      <div class="display trend-total">{{ totalLabel() }}</div>
-      <div class="trend-chip" [class]="'trend-chip ' + chip().direction">{{ chip().text }}</div>
-      <div class="trend-delta-sub">{{ deltaSub() }}</div>
-    </div>
-    <div class="trend-chart" aria-hidden="true">
-      @for (bar of bars(); track bar.date) {
-        <div class="trend-bar" [class.zero]="bar.isZero" [style.height]="bar.height" [title]="bar.tooltip"></div>
-      }
-    </div>
+  <!-- ── Hero: total + delta ────────────── -->
+  <div class="trend-hero" [attr.aria-label]="ariaLabel()">
+    <div class="display trend-total">{{ totalLabel() }}</div>
+    <div class="trend-chip" [class]="'trend-chip ' + chip().direction">{{ chip().text }}</div>
+    <div class="trend-delta-sub">{{ deltaSub() }}</div>
   </div>
 
   <!-- ── Task rows ──────────────────────── -->

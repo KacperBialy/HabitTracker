@@ -17,12 +17,6 @@ const DIRECTION_ARROW: Record<TrendDirection, string> = {
   flat: '',
 };
 
-/** Shortest bar drawn for a non-zero day, as a % of the tallest — keeps small days visible. */
-const MIN_BAR_PERCENT = 14;
-
-/** Flat height for a zero day, in px — a hairline placeholder rather than nothing. */
-const ZERO_BAR_HEIGHT = '3px';
-
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-trend-comparison',
@@ -72,21 +66,6 @@ export class TrendComparisonComponent {
     }
     const word = percentChange > 0 ? 'more' : 'less';
     return `${formatMinutes(deltaMinutes)} ${word} than last ${label} (${this.previousLabel()})`;
-  });
-
-  /** Daily bars, scaled against the tallest day in the window. */
-  protected readonly bars = computed(() => {
-    const { days } = this.comparison();
-    const max = Math.max(...days.map((day) => day.minutes), 1);
-    return days.map((day) => ({
-      date: day.date,
-      isZero: day.minutes === 0,
-      height:
-        day.minutes === 0
-          ? ZERO_BAR_HEIGHT
-          : `${Math.max(MIN_BAR_PERCENT, (day.minutes / max) * 100)}%`,
-      tooltip: day.minutes > 0 ? `${day.date}: ${formatMinutes(day.minutes)}` : day.date,
-    }));
   });
 
   /** Per-task rows: dot, name, share bar, current total and its own delta. */

@@ -21,8 +21,8 @@ export interface TrendRow {
   sharePercent: number;
 }
 
-/** One day of the current window, oldest first — the hero sparkline. */
-export interface TrendDay {
+/** One day of the current window — used to pick the busiest weekday. */
+interface TrendDay {
   date: string;
   minutes: number;
 }
@@ -36,8 +36,6 @@ export interface TrendComparison {
   deltaMinutes: number;
   /** One row per task active in either window, biggest current total first. */
   tasks: TrendRow[];
-  /** Every day of the current window, including zero days, oldest first. */
-  days: TrendDay[];
   /** Weekday name of the busiest day in the current window; null when nothing was logged. */
   mostActiveWeekday: string | null;
 }
@@ -86,11 +84,7 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
   const previousStart = localDateString(addDays(today, -(rangeDays * 2 - 1)));
   const previousEnd = localDateString(addDays(today, -rangeDays));
 
-  // Pre-seed every day of the current window so zero days still render a bar.
   const minutesByDate = new Map<string, number>();
-  for (let offset = rangeDays - 1; offset >= 0; offset--) {
-    minutesByDate.set(localDateString(addDays(today, -offset)), 0);
-  }
 
   let currentMinutes = 0;
   let previousMinutes = 0;
@@ -123,8 +117,6 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
     }
   }
 
-  const days = [...minutesByDate.entries()].map(([date, minutes]) => ({ date, minutes }));
-
   // Biggest current total first so the list reads as a ranking; taskId tiebreak keeps ties stable.
   const tasks = [...totalsByTask.values()]
     .sort(
@@ -146,10 +138,12 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
       };
     });
 
-  const busiest = days.reduce<TrendDay | null>(
-    (best, day) => (day.minutes > 0 && (!best || day.minutes > best.minutes) ? day : best),
-    null,
-  );
+  const busiest = [...minutesByDate.entries()]
+    .map(([date, minutes]) => ({ date, minutes }))
+    .reduce<TrendDay | null>(
+      (best, day) => (day.minutes > 0 && (!best || day.minutes > best.minutes) ? day : best),
+      null,
+    );
 
   const overallChange = percentChange(currentMinutes, previousMinutes);
   return {
@@ -159,7 +153,6 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
     direction: directionOf(overallChange),
     deltaMinutes: Math.abs(currentMinutes - previousMinutes),
     tasks,
-    days,
     mostActiveWeekday: busiest ? WEEKDAY_NAMES[parseLocalDate(busiest.date).getDay()] : null,
   };
 }
