@@ -65,6 +65,10 @@
   </div>
 
   <div class="shell px-4 pb-6 sm:px-6 sm:pb-7 lg:px-7">
+    <app-trend-comparison [entries]="historyEntries()" />
+  </div>
+
+  <div class="shell px-4 pb-6 sm:px-6 sm:pb-7 lg:px-7">
     <app-contributions-heatmap [days]="heatmapDays()" (selectDay)="selectedHistoryDate.set($event.date)" />
   </div>
 

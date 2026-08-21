@@ -1,0 +1,60 @@
+<section class="trend-widget">
+  <!-- ── Header ─────────────────────────── -->
+  <div class="trend-head">
+    <span class="display trend-title">Trend</span>
+    <span class="trend-range-label">last {{ rangeDays() }} days</span>
+    <div class="trend-toggle" role="tablist" aria-label="Trend range">
+      @for (option of rangeOptions; track option.days) {
+        <button
+          type="button"
+          role="tab"
+          [class.active]="rangeDays() === option.days"
+          [attr.aria-selected]="rangeDays() === option.days"
+          (click)="rangeDays.set(option.days)">
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Hero: total + delta + daily bars ── -->
+  <div class="trend-hero">
+    <div class="trend-hero-nums" [attr.aria-label]="ariaLabel()">
+      <div class="display trend-total">{{ totalLabel() }}</div>
+      <div class="trend-chip" [class]="'trend-chip ' + chip().direction">{{ chip().text }}</div>
+      <div class="trend-delta-sub">{{ deltaSub() }}</div>
+    </div>
+    <div class="trend-chart" aria-hidden="true">
+      @for (bar of bars(); track bar.date) {
+        <div class="trend-bar" [class.zero]="bar.isZero" [style.height]="bar.height" [title]="bar.tooltip"></div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Task rows ──────────────────────── -->
+  @if (taskRows().length > 0) {
+    <div class="trend-tasks">
+      @for (row of taskRows(); track row.taskId) {
+        <div class="trend-task">
+          <span class="trend-dot" [style.background]="row.color"></span>
+          <span class="trend-task-name">{{ row.taskName }}</span>
+          <span class="trend-share">
+            <i [style.width.%]="row.sharePercent" [style.background]="row.color"></i>
+          </span>
+          <span class="trend-task-time">{{ row.duration }}</span>
+          <span class="trend-task-delta" [class]="'trend-task-delta ' + (row.isNew ? 'new' : row.direction)">
+            {{ row.deltaLabel }}
+          </span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="trend-empty">No time logged in this period.</div>
+  }
+
+  <!-- ── Footer note ────────────────────── -->
+  <div class="trend-foot">
+    <span>{{ footLeft() }}</span>
+    <span>{{ footRight() }}</span>
+  </div>
+</section>

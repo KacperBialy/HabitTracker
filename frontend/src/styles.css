@@ -151,6 +151,276 @@ input[type="number"] {
   color: var(--color-paper);
 }
 
+/* ── Trend widget ─────────────────────────────────────────────────────
+   Ported from the trend-widget-redesign mockup. Up/down tints reuse the
+   task palette's green and the theme accent so direction reads the same
+   as elsewhere on the dashboard. */
+.trend-widget {
+  --trend-line: #e8e2d5;
+  --trend-up: #4a8f6d;
+  --trend-up-soft: #e2efe7;
+  --trend-down: #c05b45;
+  --trend-down-soft: #f6e4de;
+  --trend-neutral-chip: #efeadd;
+}
+
+.trend-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.trend-title {
+  font-size: 1.625rem;
+  line-height: 1;
+}
+
+.trend-range-label {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.trend-toggle {
+  margin-left: auto;
+  display: flex;
+  background: var(--color-paper);
+  border: 1px solid var(--trend-line);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.trend-toggle button {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.trend-toggle button.active {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.trend-toggle button:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.trend-hero {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.trend-hero-nums {
+  flex-shrink: 0;
+}
+
+.trend-total {
+  font-size: 2.75rem;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+.trend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.84375rem;
+  font-weight: 700;
+}
+
+.trend-chip.down {
+  background: var(--trend-down-soft);
+  color: var(--trend-down);
+}
+
+.trend-chip.up {
+  background: var(--trend-up-soft);
+  color: var(--trend-up);
+}
+
+.trend-chip.none {
+  background: var(--trend-neutral-chip);
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.trend-delta-sub {
+  margin-top: 7px;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+/* Daily bars fill the hero's middle. */
+.trend-chart {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 74px;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed var(--trend-line);
+  min-width: 0;
+}
+
+.trend-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 3px 3px 1px 1px;
+  background: var(--color-ink);
+  opacity: 0.82;
+  transition: height 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.trend-bar.zero {
+  background: var(--trend-line);
+  opacity: 1;
+}
+
+.trend-bar:hover {
+  opacity: 1;
+}
+
+.trend-tasks {
+  margin-top: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.trend-task {
+  display: grid;
+  grid-template-columns: 12px minmax(90px, max-content) 1fr max-content 64px;
+  align-items: center;
+  gap: 12px;
+}
+
+.trend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.trend-task-name {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Share-of-total bar — gives each row a shape. */
+.trend-share {
+  height: 9px;
+  background: var(--color-paper);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.trend-share i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transform-origin: left;
+  animation: trend-grow 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes trend-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.trend-task-time {
+  font-size: 0.90625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.trend-task-delta {
+  font-size: 0.78125rem;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-task-delta.down {
+  color: var(--trend-down);
+}
+
+.trend-task-delta.up {
+  color: var(--trend-up);
+}
+
+.trend-task-delta.flat {
+  color: var(--color-muted);
+}
+
+.trend-task-delta.new {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.trend-empty {
+  margin-top: 18px;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.trend-foot {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--trend-line);
+  font-size: 0.78125rem;
+  color: var(--color-muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 480px) {
+  .trend-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .trend-chart {
+    height: 56px;
+  }
+
+  .trend-task {
+    grid-template-columns: 12px 1fr max-content 58px;
+  }
+
+  .trend-share {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trend-share i {
+    animation: none;
+  }
+
+  .trend-bar {
+    transition: none;
+  }
+}
+
 /* Timer ring */
 .ring {
   transform: rotate(-90deg);
