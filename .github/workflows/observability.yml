@@ -41,7 +41,7 @@ jobs:
 
             docker rm -f prometheus 2>/dev/null || true
             docker run -d --name prometheus --network habittracker --restart unless-stopped \
-              -p 127.0.0.1:9090:9090 \
+              -p 9090:9090 \
               -v /opt/habit/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
               -v prometheus-data:/prometheus \
               prom/prometheus:v3.1.0 \
@@ -50,7 +50,7 @@ jobs:
 
             docker rm -f grafana 2>/dev/null || true
             docker run -d --name grafana --network habittracker --restart unless-stopped \
-              -p 127.0.0.1:3000:3000 \
+              -p 3000:3000 \
               -e GF_SECURITY_ADMIN_USER=admin \
               -e GF_SECURITY_ADMIN_PASSWORD="$GRAFANA_PASSWORD" \
               -e GF_USERS_DEFAULT_THEME=light \
