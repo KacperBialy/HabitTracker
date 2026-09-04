@@ -71,9 +71,10 @@ jobs:
           script: |
             set -e
             cd /opt/habit
+            docker network create habittracker 2>/dev/null || true
             docker pull ${{ env.IMAGE }}:latest
             docker rm -f habittracker 2>/dev/null || true
-            docker run -d --name habittracker --restart unless-stopped \
+            docker run -d --name habittracker --network habittracker --restart unless-stopped \
               -p 8080:8080 \
               --env-file .env \
               ${{ env.IMAGE }}:latest

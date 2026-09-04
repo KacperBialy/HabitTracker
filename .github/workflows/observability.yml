@@ -1,0 +1,62 @@
+name: Observability
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Copy observability config
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: observability/**
+          target: /opt/habit
+          overwrite: true
+
+      - uses: appleboy/ssh-action@v1
+        env:
+          GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: GRAFANA_PASSWORD
+          script: |
+            set -e
+            cd /opt/habit
+
+            test -f observability/prometheus/prometheus.yml
+
+            docker network create habittracker 2>/dev/null || true
+            docker volume create prometheus-data >/dev/null
+            docker volume create grafana-data >/dev/null
+
+            docker rm -f prometheus 2>/dev/null || true
+            docker run -d --name prometheus --network habittracker --restart unless-stopped \
+              -p 127.0.0.1:9090:9090 \
+              -v /opt/habit/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+              -v prometheus-data:/prometheus \
+              prom/prometheus:v3.1.0 \
+              --config.file=/etc/prometheus/prometheus.yml \
+              --web.enable-lifecycle
+
+            docker rm -f grafana 2>/dev/null || true
+            docker run -d --name grafana --network habittracker --restart unless-stopped \
+              -p 127.0.0.1:3000:3000 \
+              -e GF_SECURITY_ADMIN_USER=admin \
+              -e GF_SECURITY_ADMIN_PASSWORD="$GRAFANA_PASSWORD" \
+              -e GF_USERS_DEFAULT_THEME=light \
+              -v /opt/habit/observability/grafana/provisioning:/etc/grafana/provisioning:ro \
+              -v /opt/habit/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro \
+              -v grafana-data:/var/lib/grafana \
+              grafana/grafana:11.5.1
+
+            docker network connect habittracker habittracker 2>/dev/null || true
