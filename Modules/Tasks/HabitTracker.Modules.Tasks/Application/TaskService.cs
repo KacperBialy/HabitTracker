@@ -3,6 +3,7 @@ using HabitTracker.Modules.Tasks.Contracts.Models;
 using HabitTracker.Modules.Tasks.Contracts.Requests;
 using HabitTracker.Modules.Tasks.Domain;
 using HabitTracker.Modules.Tasks.Persistence;
+using HabitTracker.SharedKernel.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TimeProvider = System.TimeProvider;
@@ -12,7 +13,8 @@ namespace HabitTracker.Modules.Tasks.Application;
 internal sealed class TaskService(
     TasksDbContext db,
     TimeProvider clock,
-    IMemoryCache cache) : ITaskService
+    IMemoryCache cache,
+    HabitTrackerMetrics metrics) : ITaskService
 {
     public async Task<TaskDto> Create(Guid ownerId, CreateTaskRequest request, CancellationToken ct = default)
     {
@@ -21,6 +23,7 @@ internal sealed class TaskService(
         await db.SaveChangesAsync(ct);
 
         InvalidateOwnerCache(ownerId);
+        metrics.TaskCreated(request.Color.ToString());
 
         return task.ToDto();
     }
@@ -65,6 +68,7 @@ internal sealed class TaskService(
         await db.SaveChangesAsync(ct);
 
         InvalidateOwnerCache(ownerId);
+        metrics.TaskDeleted();
 
         return true;
     }

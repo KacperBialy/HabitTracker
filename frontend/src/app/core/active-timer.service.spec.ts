@@ -8,13 +8,13 @@ import { TasksService } from './tasks.service';
 const STORAGE_KEY = 'habit-tracker.active-timer';
 
 describe('ActiveTimerService', () => {
-  let logTimeCalls: Array<{ taskId: string; minutes: number; logDate: string }>;
+  let logTimeCalls: Array<{ taskId: string; minutes: number; logDate: string; fromTimer: boolean }>;
 
   function setup(): ActiveTimerService {
     logTimeCalls = [];
     const tasksService: Partial<TasksService> = {
-      logTime: (taskId: string, minutes: number, logDate: string) => {
-        logTimeCalls.push({ taskId, minutes, logDate });
+      logTime: (taskId: string, minutes: number, logDate: string, fromTimer = false) => {
+        logTimeCalls.push({ taskId, minutes, logDate, fromTimer });
         return of({ id: 'log1', taskId, ownerId: 'o', minutes, logDate });
       },
     };
@@ -71,7 +71,7 @@ describe('ActiveTimerService', () => {
 
     service.stop('2026-06-30').subscribe();
 
-    expect(logTimeCalls).toEqual([{ taskId: 'task-a', minutes: 2, logDate: '2026-06-30' }]);
+    expect(logTimeCalls).toEqual([{ taskId: 'task-a', minutes: 2, logDate: '2026-06-30', fromTimer: true }]);
     expect(service.activeTimer()).toBeNull();
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
@@ -112,7 +112,7 @@ describe('ActiveTimerService', () => {
 
     service.start('task-b', 'Workout').subscribe();
 
-    expect(logTimeCalls).toEqual([{ taskId: 'task-a', minutes: 1, logDate: '2026-06-30' }]);
+    expect(logTimeCalls).toEqual([{ taskId: 'task-a', minutes: 1, logDate: '2026-06-30', fromTimer: true }]);
     expect(service.activeTimer()?.taskId).toBe('task-b');
   });
 

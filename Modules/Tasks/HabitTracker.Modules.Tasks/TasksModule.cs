@@ -1,6 +1,7 @@
 using HabitTracker.Modules.Tasks.Application;
 using HabitTracker.Modules.Tasks.Contracts;
 using HabitTracker.Modules.Tasks.Persistence;
+using HabitTracker.SharedKernel.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ public static class TasksModule
         services.AddScoped<ITaskTimeLogService, TaskTimeLogService>();
 
         services.AddMemoryCache();
+        services.AddSingleton<HabitTrackerMetrics>();
 
         return services;
     }

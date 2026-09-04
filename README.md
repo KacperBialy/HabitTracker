@@ -73,6 +73,7 @@ Cookie-based, same-origin auth via Google (OIDC).
 - **Backend** — .NET 10 modular monolith (ASP.NET Core minimal APIs), EF Core + PostgreSQL, xUnit integration tests against a real Postgres via Testcontainers.
 - **Frontend** — Angular 21 standalone-component SPA (signals throughout, OnPush change detection), Tailwind CSS v4, Vitest.
 - **Auth** — OIDC (Google) + cookie auth, same-origin (no CORS, no tokens).
+- **Observability** — OpenTelemetry metrics (ASP.NET Core, runtime, EF Core, custom business counters) → Prometheus → Grafana.
 
 ## Architecture
 
@@ -85,6 +86,27 @@ Current modules:
 
 Architecture decisions are recorded in [`HabitTracker/Docs/Adr/`](HabitTracker/Docs/Adr/).
 
+## Observability
+
+HabitTracker is instrumented with **OpenTelemetry** and ships a full local metrics stack.
+
+- **ASP.NET Core** — request rate, error rate, latency histograms, per-route breakdown.
+- **.NET runtime** — GC, CPU, threadpool, memory.
+- **EF Core / Npgsql** — database command duration.
+- **Custom business metrics** — `habittracker_tasks_created_total`, `habittracker_time_logs_created_total`, `habittracker_tracked_minutes_total` and friends, recorded inside the Tasks module so they follow domain operations rather than HTTP calls.
+
+Metrics are exposed in Prometheus format at `/api/metrics` (unauthenticated — fine for a local compose stack, put it behind network policy before exposing the app publicly), scraped by **Prometheus**, and visualized in **Grafana** — datasource and dashboard are provisioned from [`observability/`](observability/), so `docker compose up` brings the whole stack up ready to use.
+
+| Service | URL |
+|---|---|
+| App | http://localhost:8080 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 (anonymous viewer; admin/admin to edit) |
+
+Those ports and the open Grafana are the **local** stack only — see [Deployment](#deployment) for how the same stack is locked down on a server.
+
+![Grafana dashboard](docs/screenshots/grafana-dashboard.png)
+
 ## Getting started
 
 ```bash
@@ -94,12 +116,55 @@ dotnet run --project HabitTracker
 # Frontend (Angular 21) — from frontend/, ng serve on :4200, proxies /api to :8080
 cd frontend && npm start
 
-# Full stack via Docker — app on :8080, postgres 17 on :5432
+# Full stack via Docker — app :8080, postgres :5432, prometheus :9090, grafana :3000
 docker compose up
 
 # Tests
 dotnet test              # backend integration tests (Docker must be running)
 cd frontend && npm test  # frontend unit tests
+```
+
+
+## Deployment
+
+Push to `main` and [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) does the rest:
+backend + frontend tests → build and push the image to Docker Hub (tagged `latest` and the
+commit SHA) → deploy over SSH.
+
+The server runs the stack from [`compose.prod.yaml`](compose.prod.yaml), which differs from the
+local `compose.yaml` in three ways:
+
+- **The image is pulled, not built** — tagged with the exact commit that CI built.
+- **Postgres is external.** The app talks to a managed database; connection strings come from
+  `/opt/habit/.env` on the server, which is never in this repo.
+- **Prometheus is internal, Grafana is public.** Prometheus publishes no ports, because
+  `/api/metrics` is unauthenticated and only Prometheus should reach it. Grafana is exposed,
+  so anonymous access is off and its admin password is required from `.env`.
+
+### Server prerequisites
+
+`/opt/habit/.env` must exist before the first deploy, holding at least:
+
+```dotenv
+ConnectionStrings__Users=Host=...;Database=...;Username=...;Password=...
+ConnectionStrings__Tasks=Host=...;Database=...;Username=...;Password=...
+Oidc__ClientId=...
+Oidc__ClientSecret=...
+GRAFANA_ADMIN_PASSWORD=...        # required — Grafana is internet-facing
+GRAFANA_ROOT_URL=https://...      # optional, if Grafana sits behind a domain/proxy
+```
+
+Repository secrets used by the workflow: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `VPS_HOST`,
+`VPS_USER`, `VPS_SSH_KEY`, and optionally `VPS_PORT`.
+
+### Rolling back
+
+Every deploy is pinned to a commit SHA, so redeploying an older one is a single command on the
+server:
+
+```bash
+cd /opt/habit
+IMAGE=<dockerhub-user>/habit IMAGE_TAG=<previous-sha> docker compose -f compose.prod.yaml up -d
 ```
 
 See [`CLAUDE.md`](CLAUDE.md) for the full command reference and conventions.

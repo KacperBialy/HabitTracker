@@ -102,7 +102,7 @@ export class ActiveTimerService implements OnDestroy {
     this.clear();
 
     return new Observable<void>((subscriber) => {
-      this.tasksService.logTime(timer.taskId, minutes, logDate).subscribe({
+      this.tasksService.logTime(timer.taskId, minutes, logDate, true).subscribe({
         next: () => {
           subscriber.next();
           subscriber.complete();

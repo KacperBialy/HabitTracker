@@ -1,0 +1,52 @@
+# Production stack for the VPS. Unlike compose.yaml (which builds locally and runs its own
+# Postgres), this pulls the image CI pushed and expects an external managed Postgres via .env.
+#
+# Deployed by .github/workflows/deploy.yml into /opt/habit, alongside observability/ and .env.
+services:
+  habittracker:
+    image: ${IMAGE}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file: .env
+
+  # Internal only: no published ports. /api/metrics is unauthenticated, so the app's metrics
+  # path must stay unreachable from outside — Prometheus reaches it over the compose network.
+  # To inspect Prometheus directly, tunnel it: ssh -L 9090:localhost:9090 <vps>
+  #   then docker compose exec, or temporarily publish 127.0.0.1:9090:9090.
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - habittracker
+
+  # Public. Anonymous access is off and the admin password comes from .env — this is
+  # internet-facing, so GRAFANA_ADMIN_PASSWORD must be set to something real.
+  grafana:
+    image: grafana/grafana:11.5.1
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  grafana-data:

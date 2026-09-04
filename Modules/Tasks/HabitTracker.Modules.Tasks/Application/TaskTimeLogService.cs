@@ -3,11 +3,15 @@ using HabitTracker.Modules.Tasks.Contracts.Models;
 using HabitTracker.Modules.Tasks.Contracts.Requests;
 using HabitTracker.Modules.Tasks.Domain;
 using HabitTracker.Modules.Tasks.Persistence;
+using HabitTracker.SharedKernel.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Modules.Tasks.Application;
 
-internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) : ITaskTimeLogService
+internal sealed class TaskTimeLogService(
+    TasksDbContext db,
+    TimeProvider clock,
+    HabitTrackerMetrics metrics) : ITaskTimeLogService
 {
     public async Task<TimeLogDto?> LogTime(Guid ownerId, TaskId taskId, LogTimeRequest request, CancellationToken ct = default)
     {
@@ -23,6 +27,9 @@ internal sealed class TaskTimeLogService(TasksDbContext db, TimeProvider clock) 
         var entry = TimeLogEntry.Log(taskId, ownerId, request.Minutes, request.LogDate);
         db.TimeLogs.Add(entry);
         await db.SaveChangesAsync(ct);
+
+        metrics.TimeLogged(request.Minutes, request.FromTimer);
+
         return entry.ToDto();
     }
 

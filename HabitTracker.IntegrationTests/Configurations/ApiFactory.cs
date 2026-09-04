@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OpenTelemetry.Exporter;
 using Testcontainers.PostgreSql;
 
 namespace HabitTracker.IntegrationTests.Configurations;
@@ -55,6 +56,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
             services.AddAuthorization(o => o.DefaultPolicy =
                 new AuthorizationPolicyBuilder(TestAuthHandler.SchemeName).RequireAuthenticatedUser().Build());
+
+            // The exporter caches a scrape for 10s by default, so a test would read counter values
+            // collected before it ran. Tests need to see their own writes on the next scrape.
+            services.Configure<PrometheusAspNetCoreOptions>(options =>
+                options.ScrapeResponseCacheDurationMilliseconds = 0);
         });
 
 

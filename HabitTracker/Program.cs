@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddOidcAuthentication(builder.Configuration);
+builder.Services.AddObservability();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
@@ -48,6 +49,8 @@ app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapMeEndpoints();
 app.MapTaskEndpoints();
+
+app.MapPrometheusScrapingEndpoint("/api/metrics");
 
 // SPA fallback: any non-API, non-file route returns the Angular shell and lets its router take over.
 // Mapped last so it never shadows /api/* or the auth endpoints above.

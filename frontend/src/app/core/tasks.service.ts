@@ -29,8 +29,9 @@ export class TasksService {
     return this.http.get<DayEntry[]>('/api/tasks/timelogs/entries', { params: { from, to } });
   }
 
-  logTime(taskId: string, minutes: number, logDate: string): Observable<TimeLog> {
-    return this.http.post<TimeLog>(`/api/tasks/${taskId}/timelogs`, { minutes, logDate });
+  /** `fromTimer` tags the entry as a stopwatch stop rather than a manual entry (telemetry only). */
+  logTime(taskId: string, minutes: number, logDate: string, fromTimer = false): Observable<TimeLog> {
+    return this.http.post<TimeLog>(`/api/tasks/${taskId}/timelogs`, { minutes, logDate, fromTimer });
   }
 
   yearAggregates(year: number): Observable<YearAggregates> {
