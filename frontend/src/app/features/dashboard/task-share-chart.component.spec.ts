@@ -46,6 +46,7 @@ function addDaysLocal(value: string, delta: number): string {
 
 function entry(overrides: Partial<DayEntry>): DayEntry {
   return {
+    id: crypto.randomUUID(),
     date: localDateString(),
     taskId: 'task-1',
     taskName: 'Reading',

@@ -27,6 +27,7 @@ describe('DayHistoryComponent', () => {
   }
 
   const entry = (date: string, taskId: string, taskName: string, minutes: number, taskColor = TaskColor.Green): DayEntry => ({
+    id: crypto.randomUUID(),
     date,
     taskId,
     taskName,
@@ -65,8 +66,8 @@ describe('DayHistoryComponent', () => {
     ]);
 
     expect(rowsOf(cmp)[0].entries).toEqual([
-      entry('2026-07-14', 'a', 'Reading', 60),
-      entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red),
+      { ...entry('2026-07-14', 'a', 'Reading', 60), id: expect.any(String) },
+      { ...entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red), id: expect.any(String) },
     ]);
   });
 

@@ -116,10 +116,10 @@ public sealed class TimeLogAggregatesTests(ApiFactory factory)
             "/api/tasks/timelogs/entries?from=2026-06-18&to=2026-06-19");
 
         entries.Should().BeEquivalentTo([
-            new DayEntryDto(day2, piano.Id, "Piano", 45, TaskColor.Slate),
-            new DayEntryDto(day2, reading.Id, "Reading", 30, TaskColor.Slate),
-            new DayEntryDto(day1, piano.Id, "Piano", 99, TaskColor.Slate)
-        ], options => options.WithStrictOrdering());
+            new DayEntryDto(default, day2, piano.Id, "Piano", 45, TaskColor.Slate),
+            new DayEntryDto(default, day2, reading.Id, "Reading", 30, TaskColor.Slate),
+            new DayEntryDto(default, day1, piano.Id, "Piano", 99, TaskColor.Slate)
+        ], options => options.WithStrictOrdering().Excluding(entry => entry.Id));
     }
 
     [Fact]

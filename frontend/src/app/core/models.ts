@@ -10,6 +10,7 @@ export interface Task {
 
 /** Mirrors DayEntryDto from GET /api/tasks/timelogs/entries?from=&to= — date is an ISO YYYY-MM-DD string. */
 export interface DayEntry {
+  id: string;
   date: string;
   taskId: string;
   taskName: string;

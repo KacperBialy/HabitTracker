@@ -87,7 +87,7 @@ internal sealed class TaskTimeLogService(
                 (log, task) => new { log, task })
             .OrderByDescending(row => row.log.LogDate)
             .ThenByDescending(row => row.log.Minutes)
-            .Select(row => new DayEntryDto(row.log.LogDate, row.log.TaskId, row.task.Name, row.log.Minutes, row.task.Color))
+            .Select(row => new DayEntryDto(row.log.Id, row.log.LogDate, row.log.TaskId, row.task.Name, row.log.Minutes, row.task.Color))
             .ToListAsync(ct);
     }
 }
