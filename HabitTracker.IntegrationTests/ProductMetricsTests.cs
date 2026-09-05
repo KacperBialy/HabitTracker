@@ -63,6 +63,25 @@ public sealed class ProductMetricsTests(ApiFactory factory)
         scrape.Should().Contain("habittracker_tasks_deleted_total");
     }
 
+    [Fact]
+    public async Task DeletingATimeLogExportsTheDeletionCounters()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+        var task = await CreateTask(client, TaskColor.Slate);
+        var logged = await client.PostAsJsonAsync(
+            $"/api/tasks/{task.Id}/timelogs", new LogTimeRequest(45, new DateOnly(2026, 6, 19)));
+        var created = await logged.Content.ReadFromJsonAsync<TimeLogDto>();
+        created.Should().NotBeNull();
+
+        var deleted = await client.DeleteAsync($"/api/tasks/{task.Id}/timelogs/{created.Id}");
+        deleted.EnsureSuccessStatusCode();
+
+        var scrape = await client.GetStringAsync("/api/metrics");
+
+        scrape.Should().Contain("habittracker_time_logs_deleted_total");
+        scrape.Should().Contain("habittracker_tracked_deleted_minutes_total");
+    }
+
     private static async Task<TaskDto> CreateTask(HttpClient client, TaskColor color)
     {
         var create = await client.PostAsJsonAsync("/api/tasks", new CreateTaskRequest("Metrics task", color));

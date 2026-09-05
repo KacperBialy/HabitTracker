@@ -13,7 +13,9 @@ public sealed class HabitTrackerMetrics
     private readonly Counter<long> _tasksCreated;
     private readonly Counter<long> _tasksDeleted;
     private readonly Counter<long> _timeLogsCreated;
+    private readonly Counter<long> _timeLogsDeleted;
     private readonly Counter<long> _trackedMinutes;
+    private readonly Counter<long> _trackedMinutesDeleted;
     private readonly Counter<long> _timerSessions;
 
     public HabitTrackerMetrics(IMeterFactory meterFactory)
@@ -26,8 +28,14 @@ public sealed class HabitTrackerMetrics
             "habittracker.tasks.deleted", unit: "{task}", description: "Tasks deleted.");
         _timeLogsCreated = meter.CreateCounter<long>(
             "habittracker.time_logs.created", unit: "{entry}", description: "Time log entries created.");
+        _timeLogsDeleted = meter.CreateCounter<long>(
+            "habittracker.time_logs.deleted", unit: "{entry}", description: "Time log entries deleted.");
         _trackedMinutes = meter.CreateCounter<long>(
             "habittracker.tracked.minutes", unit: "min", description: "Total minutes logged against tasks.");
+        // Counters only go up, so deleted minutes get their own series; dashboards subtract it for the net.
+        // The name ends in "minutes" because the Prometheus exporter appends the unit otherwise.
+        _trackedMinutesDeleted = meter.CreateCounter<long>(
+            "habittracker.tracked.deleted.minutes", unit: "min", description: "Minutes removed by deleting time log entries.");
         _timerSessions = meter.CreateCounter<long>(
             "habittracker.timer.sessions", unit: "{session}", description: "Time entries by how they were recorded.");
     }
@@ -42,5 +50,12 @@ public sealed class HabitTrackerMetrics
         _timeLogsCreated.Add(1);
         _trackedMinutes.Add(minutes);
         _timerSessions.Add(1, new KeyValuePair<string, object?>("source", fromTimer ? "timer" : "manual"));
+    }
+
+    /// <summary>No <c>source</c> tag here: whether an entry came from the timer is never persisted.</summary>
+    public void TimeLogDeleted(int minutes)
+    {
+        _timeLogsDeleted.Add(1);
+        _trackedMinutesDeleted.Add(minutes);
     }
 }

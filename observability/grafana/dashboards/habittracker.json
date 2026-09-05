@@ -1332,7 +1332,7 @@
       },
       "type": "timeseries",
       "id": 14,
-      "title": "Time logs created",
+      "title": "Time logs created / deleted",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -1428,9 +1428,20 @@
           "legendFormat": "{{source}}",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(habittracker_time_logs_deleted_total{job=\"habittracker\"}[5m])) * 60",
+          "legendFormat": "deleted/min",
+          "range": true,
+          "refId": "C"
         }
       ],
-      "description": "Time entries recorded per minute, split by whether they came from the stopwatch or a manual entry."
+      "description": "Time entries recorded per minute, split by whether they came from the stopwatch or a manual entry, alongside entries deleted per minute."
     },
     {
       "datasource": {
@@ -1487,13 +1498,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(increase(habittracker_tracked_minutes_total{job=\"habittracker\"}[24h]))",
+          "expr": "sum(increase(habittracker_tracked_minutes_total{job=\"habittracker\"}[24h])) - (sum(increase(habittracker_tracked_deleted_minutes_total{job=\"habittracker\"}[24h])) or vector(0))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "description": "Total minutes logged against tasks in the last 24 hours."
+      "description": "Net minutes logged against tasks in the last 24 hours: minutes logged minus minutes removed by deleting entries."
     },
     {
       "datasource": {

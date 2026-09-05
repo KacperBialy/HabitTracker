@@ -54,6 +54,9 @@ internal sealed class TaskTimeLogService(
 
         db.TimeLogs.Remove(entry);
         await db.SaveChangesAsync(ct);
+
+        metrics.TimeLogDeleted(entry.Minutes);
+
         return true;
     }
 
