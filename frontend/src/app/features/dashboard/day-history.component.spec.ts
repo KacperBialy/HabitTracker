@@ -18,12 +18,16 @@ function rowsOf(component: DayHistoryComponent): HistoryRow[] {
 }
 
 describe('DayHistoryComponent', () => {
-  function build(entries: DayEntry[]): DayHistoryComponent {
+  function buildFixture(entries: DayEntry[]) {
     TestBed.configureTestingModule({});
     const fixture = TestBed.createComponent(DayHistoryComponent);
     fixture.componentRef.setInput('entries', entries);
     fixture.detectChanges();
-    return fixture.componentInstance;
+    return { fixture, cmp: fixture.componentInstance };
+  }
+
+  function build(entries: DayEntry[]): DayHistoryComponent {
+    return buildFixture(entries).cmp;
   }
 
   const entry = (date: string, taskId: string, taskName: string, minutes: number, taskColor = TaskColor.Green): DayEntry => ({
@@ -58,17 +62,28 @@ describe('DayHistoryComponent', () => {
     expect(rowsOf(cmp).length).toBe(0);
   });
 
-  it('groups multiple entries for the same task within a day, summing minutes, biggest first', () => {
-    const cmp = build([
-      entry('2026-07-14', 'a', 'Reading', 30),
-      entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red),
-      entry('2026-07-14', 'a', 'Reading', 30),
-    ]);
+  it('keeps every log as its own row within a day, longest first', () => {
+    const shortReading = entry('2026-07-14', 'a', 'Reading', 30);
+    const workout = entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red);
+    const longReading = entry('2026-07-14', 'a', 'Reading', 60);
+    const cmp = build([shortReading, workout, longReading]);
 
-    expect(rowsOf(cmp)[0].entries).toEqual([
-      { ...entry('2026-07-14', 'a', 'Reading', 60), id: expect.any(String) },
-      { ...entry('2026-07-14', 'b', 'Workout', 45, TaskColor.Red), id: expect.any(String) },
-    ]);
+    // Same-task logs are not merged: each one must stay deletable on its own.
+    expect(rowsOf(cmp)[0].entries).toEqual([longReading, workout, shortReading]);
+  });
+
+  it('emits the clicked log when its delete button is pressed', () => {
+    const toDelete = entry('2026-07-14', 'a', 'Reading', 45);
+    const other = entry('2026-07-14', 'b', 'Workout', 30);
+    const { fixture, cmp } = buildFixture([toDelete, other]);
+    const emitted: DayEntry[] = [];
+    cmp.deleteEntry.subscribe((deleted) => emitted.push(deleted));
+
+    const button = fixture.nativeElement.querySelector('button[aria-label="Delete 45m on Reading"]') as HTMLButtonElement;
+    expect(button).not.toBeNull();
+    button.click();
+
+    expect(emitted).toEqual([toDelete]);
   });
 
   it('labels today, yesterday, same-year and prior-year days', () => {

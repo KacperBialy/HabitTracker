@@ -12,10 +12,16 @@ import { localDateString } from '../../core/date-utils';
 
 describe('DashboardComponent merge', () => {
   let listCalls = 0;
+  let deletedTimeLogs: Array<{ taskId: string; logId: string }> = [];
 
   function setup(tasks: Task[], entries: DayEntry[]) {
     listCalls = 0;
+    deletedTimeLogs = [];
     const tasksService: Partial<TasksService> = {
+      deleteTimeLog: (taskId: string, logId: string) => {
+        deletedTimeLogs.push({ taskId, logId });
+        return of(undefined);
+      },
       list: () => {
         listCalls++;
         return of(tasks);
@@ -84,6 +90,17 @@ describe('DashboardComponent merge', () => {
     cmp.logTime({ minutes: 45, logDate: '2026-06-21' });
 
     expect(cmp.loggingTask()).toBeNull(); // modal closed
+    expect(listCalls).toBe(2); // reloaded
+  });
+
+  it('deletes the chosen history entry against its task and reloads', () => {
+    const toDelete = entry('a', 45);
+    const cmp = setup([task('a', 'Reading')], [toDelete]) as any;
+    expect(listCalls).toBe(1); // initial load
+
+    cmp.deleteEntry(toDelete);
+
+    expect(deletedTimeLogs).toEqual([{ taskId: 'a', logId: toDelete.id }]);
     expect(listCalls).toBe(2); // reloaded
   });
 });

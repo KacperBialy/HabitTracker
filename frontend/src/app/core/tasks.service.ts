@@ -34,6 +34,10 @@ export class TasksService {
     return this.http.post<TimeLog>(`/api/tasks/${taskId}/timelogs`, { minutes, logDate, fromTimer });
   }
 
+  deleteTimeLog(taskId: string, logId: string): Observable<void> {
+    return this.http.delete<void>(`/api/tasks/${taskId}/timelogs/${logId}`);
+  }
+
   yearAggregates(year: number): Observable<YearAggregates> {
     return this.http.get<YearAggregates>('/api/tasks/timelogs/aggregates', { params: { year } });
   }

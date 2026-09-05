@@ -136,6 +136,14 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /** Deletes one log from the history; reloads either way so the view matches the server. */
+  protected deleteEntry(entry: DayEntry): void {
+    this.tasks.deleteTimeLog(entry.taskId, entry.id).subscribe({
+      next: () => this.load(),
+      error: () => this.load(),
+    });
+  }
+
   /** Starts (or switches to) a timer for this task; reloads once any previous timer is logged. */
   protected startTimer(task: TaskVm): void {
     this.timer.start(task.id, task.name).subscribe(() => this.load());

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output } from '@angular/core';
 import { formatDate } from '@angular/common';
 
 import { DayEntry } from '../../core/models';
@@ -52,15 +52,22 @@ interface HistoryRow {
                   <span class="text-muted text-[13px]">{{ row.total }}</span>
                 </div>
 
-                @for (entry of row.entries; track entry.taskId) {
-                  <div class="flex items-center gap-2">
+                @for (entry of row.entries; track entry.id) {
+                  <div class="group flex items-center gap-2">
                     <span class="flex w-9 shrink-0 justify-center">
                       <span class="z-10 inline-block h-4 w-4 rounded-[3px] border-[1.4px] border-rule"
                             [style.background]="entry.taskColor | taskColorHex"></span>
                     </span>
-                    <div class="min-w-0 flex-1 rounded-[6px_9px_5px_8px/8px_5px_9px_6px] border-[1.4px] border-rule bg-paper px-3 py-2 text-sm">
-                      Logged <span class="font-semibold">{{ minutesLabel(entry.minutes) }}</span>
-                      on <span class="font-semibold">{{ entry.taskName }}</span>
+                    <div class="flex min-w-0 flex-1 items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px] border-[1.4px] border-rule bg-paper px-3 py-1.5 text-sm">
+                      <span class="min-w-0 flex-1 truncate">
+                        Logged <span class="font-semibold">{{ minutesLabel(entry.minutes) }}</span>
+                        on <span class="font-semibold">{{ entry.taskName }}</span>
+                      </span>
+                      <button type="button"
+                              class="btn danger px-2.5 py-0.5 text-xs opacity-100 transition-opacity
+                                     sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
+                              [attr.aria-label]="'Delete ' + minutesLabel(entry.minutes) + ' on ' + entry.taskName"
+                              (click)="deleteEntry.emit(entry)">Delete</button>
                     </div>
                   </div>
                 }
@@ -73,12 +80,15 @@ interface HistoryRow {
   `,
 })
 export class DayHistoryComponent {
-  /** Every logged entry in the visible window; the component groups them per day and task. */
+  /** Every logged entry in the visible window; the component groups them per day, one row per log. */
   readonly entries = input.required<DayEntry[], DayEntry[] | null | undefined>({
     transform: (value) => value ?? [],
   });
 
   readonly selectedDate = input<string | null>(null);
+
+  /** Fired when the user asks to delete a single log entry; the parent owns the API call and reload. */
+  readonly deleteEntry = output<DayEntry>();
 
   constructor() {
     // A heatmap day-click flows in through `selectedDate`; bring that day into view.
@@ -91,7 +101,7 @@ export class DayHistoryComponent {
     });
   }
 
-  /** Days with logged time, newest first, each with its per-task breakdown. */
+  /** Days with logged time, newest first, each listing its individual logs so any one can be deleted. */
   protected readonly rows = computed<HistoryRow[]>(() => {
     const byDate = new Map<string, DayEntry[]>();
     for (const entry of this.entries()) {
@@ -109,7 +119,7 @@ export class DayHistoryComponent {
         date,
         label: dayLabel(date),
         total: formatMinutes(dayEntries.reduce((sum, entry) => sum + entry.minutes, 0)),
-        entries: groupByTask(dayEntries),
+        entries: biggestFirst(dayEntries),
       }));
   });
 
@@ -134,16 +144,10 @@ function dayLabel(date: string): string {
   return formatted;
 }
 
-/** Collapses multiple entries for the same task into one, summing minutes, biggest first. */
-function groupByTask(entries: DayEntry[]): DayEntry[] {
-  const byTask = new Map<string, DayEntry>();
-  for (const entry of entries) {
-    const existing = byTask.get(entry.taskId);
-    if (existing) {
-      byTask.set(entry.taskId, { ...existing, minutes: existing.minutes + entry.minutes });
-    } else {
-      byTask.set(entry.taskId, { ...entry });
-    }
-  }
-  return [...byTask.values()].sort((first, second) => second.minutes - first.minutes);
+/**
+ * Every log stays its own row (so each carries the id its delete button needs), longest first.
+ * The API already returns them in this order; sorting here keeps the view independent of that.
+ */
+function biggestFirst(entries: DayEntry[]): DayEntry[] {
+  return [...entries].sort((first, second) => second.minutes - first.minutes);
 }
