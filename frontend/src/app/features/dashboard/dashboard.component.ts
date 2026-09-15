@@ -55,7 +55,6 @@ export class DashboardComponent implements OnInit {
   protected readonly selectedHistoryDate = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
-  protected readonly newTaskParent = signal<TaskVm | null>(null);
   protected readonly loggingTask = signal<TaskVm | null>(null);
   protected readonly logError = signal('');
 
@@ -136,22 +135,12 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  protected openNewSubtask(parent: TaskVm): void {
-    this.showNewTask.set(false);
-    this.newTaskParent.set(parent);
-  }
-
   protected closeNewTask(): void {
     this.showNewTask.set(false);
-    this.newTaskParent.set(null);
   }
 
   protected createTask(payload: NewTaskPayload): void {
-    const created = payload.parentTaskId
-      ? this.tasks.createSubtask(payload.parentTaskId, payload.name, payload.color)
-      : this.tasks.create(payload.name, payload.color);
-
-    created.subscribe(() => {
+    this.tasks.create(payload.name, payload.color).subscribe(() => {
       this.closeNewTask();
       this.load();
     });

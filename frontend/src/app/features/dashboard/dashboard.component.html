@@ -56,8 +56,6 @@
                         [color]="task.color"
                         [todayMinutes]="task.totalMinutes"
                         [isTracking]="task.id === activeTaskId()"
-                        [canAddSubtask]="true"
-                        (addSubtask)="openNewSubtask(task)"
                         (log)="openLog(task)"
                         (start)="startTimer(task)"
                         (stop)="stopTimer()" />
@@ -95,10 +93,8 @@
   </div>
 </div>
 
-@if (showNewTask() || newTaskParent()) {
+@if (showNewTask()) {
   <app-new-task-modal
-    [parentTaskId]="newTaskParent()?.id ?? null"
-    [parentName]="newTaskParent()?.name ?? null"
     (create)="createTask($event)"
     (cancel)="closeNewTask()" />
 }

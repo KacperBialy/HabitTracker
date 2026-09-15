@@ -19,12 +19,6 @@ import { DEFAULT_TASK_COLOR, TaskColor } from '../../core/task-colors';
       @if (todayLabel()) {
         <span class="text-muted mr-auto text-[13px] sm:mr-1.5">{{ todayLabel() }}</span>
       }
-      @if (canAddSubtask()) {
-        <button type="button"
-                class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
-                       sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                (click)="addSubtask.emit()">+ sub</button>
-      }
       <button type="button"
               class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
                      sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
@@ -46,11 +40,9 @@ export class TaskRowComponent {
   readonly todayMinutes = input(0);
   readonly isTracking = input(false);
   readonly isSubtask = input(false);
-  readonly canAddSubtask = input(false);
   readonly log = output<void>();
   readonly start = output<void>();
   readonly stop = output<void>();
-  readonly addSubtask = output<void>();
 
   readonly todayLabel = computed(() => {
     const label = formatMinutes(this.todayMinutes());

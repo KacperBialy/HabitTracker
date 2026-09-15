@@ -39,6 +39,18 @@ describe('TaskRowComponent.todayLabel', () => {
   });
 });
 
+describe('TaskRowComponent actions', () => {
+  it('does not render a + sub button', () => {
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.detectChanges();
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+      .map((button) => button.textContent?.trim());
+    expect(labels).not.toContain('+ sub');
+    expect(labels).toContain('+ log');
+    expect(labels).toContain('▶ start');
+  });
+});
+
 describe('TaskRowComponent swatch', () => {
   it('sizes parent swatches so the color is visible', () => {
     const classes = swatchClass().split(/\s+/);
