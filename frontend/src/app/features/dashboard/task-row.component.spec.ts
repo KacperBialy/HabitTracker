@@ -63,6 +63,18 @@ describe('TaskRowComponent actions', () => {
     expect(fixture.nativeElement.textContent).toContain('2 sub');
   });
 
+  it('keeps parent actions on one row instead of wrapping', () => {
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.componentRef.setInput('subtaskCount', 2);
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('div') as HTMLElement;
+    const classes = row.className.split(/\s+/);
+    expect(classes).toContain('flex');
+    expect(classes).not.toContain('flex-wrap');
+    expect(classes).toContain('items-center');
+  });
+
   it('emits when the subtask toggle is clicked', () => {
     const fixture = TestBed.createComponent(TaskRowComponent);
     fixture.componentRef.setInput('subtaskCount', 1);
