@@ -49,6 +49,30 @@ describe('TaskRowComponent actions', () => {
     expect(labels).toContain('+ log');
     expect(labels).toContain('▶ start');
   });
+
+  it('shows a collapsible subtask summary for parent tasks', () => {
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.componentRef.setInput('name', 'Workout');
+    fixture.componentRef.setInput('subtaskCount', 2);
+    fixture.componentRef.setInput('expanded', true);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('[aria-expanded]') as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.getAttribute('aria-label')).toBe('Collapse Workout subtasks');
+    expect(fixture.nativeElement.textContent).toContain('2 sub');
+  });
+
+  it('emits when the subtask toggle is clicked', () => {
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.componentRef.setInput('subtaskCount', 1);
+    fixture.detectChanges();
+    const emit = vi.spyOn(fixture.componentInstance.toggleSubtasks, 'emit');
+
+    (fixture.nativeElement.querySelector('[aria-expanded]') as HTMLButtonElement).click();
+
+    expect(emit).toHaveBeenCalledOnce();
+  });
 });
 
 describe('TaskRowComponent swatch', () => {

@@ -44,6 +44,48 @@ export interface TaskVm {
     DayHistoryComponent,
   ],
   templateUrl: './dashboard.component.html',
+  styles: `
+    .task-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .subtask-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .subtask-branch {
+      position: relative;
+      padding-left: 1rem;
+    }
+
+    .subtask-branch::before {
+      position: absolute;
+      top: -0.55rem;
+      left: 0;
+      width: 1rem;
+      height: calc(50% + 0.55rem);
+      border-bottom: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      border-left: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      border-bottom-left-radius: 0.75rem;
+      content: "";
+      pointer-events: none;
+    }
+
+    .subtask-branch:not(:last-child)::after {
+      position: absolute;
+      top: 50%;
+      bottom: -0.55rem;
+      left: 0;
+      border-left: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      content: "";
+      pointer-events: none;
+    }
+  `,
 })
 export class DashboardComponent implements OnInit {
   private readonly tasks = inject(TasksService);
@@ -57,6 +99,7 @@ export class DashboardComponent implements OnInit {
   protected readonly showNewTask = signal(false);
   protected readonly loggingTask = signal<TaskVm | null>(null);
   protected readonly logError = signal('');
+  protected readonly collapsedTaskIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly activeTaskId = computed(() => this.timer.activeTimer()?.taskId ?? null);
 
@@ -187,6 +230,17 @@ export class DashboardComponent implements OnInit {
 
   protected displayName(task: TaskVm): string {
     return taskDisplayName(task.name, task.parentName);
+  }
+
+  protected toggleSubtasks(taskId: string): void {
+    this.collapsedTaskIds.update((collapsedTaskIds) => {
+      const nextCollapsedTaskIds = new Set(collapsedTaskIds);
+      if (nextCollapsedTaskIds.has(taskId))
+        nextCollapsedTaskIds.delete(taskId);
+      else
+        nextCollapsedTaskIds.add(taskId);
+      return nextCollapsedTaskIds;
+    });
   }
 
   private formatElapsed(totalSeconds: number): string {

@@ -22,6 +22,48 @@ import { DeleteTaskModalComponent } from './delete-task-modal.component';
     DeleteTaskModalComponent,
   ],
   templateUrl: './manage-tasks.component.html',
+  styles: `
+    .task-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .subtask-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .subtask-branch {
+      position: relative;
+      padding-left: 1rem;
+    }
+
+    .subtask-branch::before {
+      position: absolute;
+      top: -0.55rem;
+      left: 0;
+      width: 1rem;
+      height: calc(50% + 0.55rem);
+      border-bottom: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      border-left: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      border-bottom-left-radius: 0.75rem;
+      content: "";
+      pointer-events: none;
+    }
+
+    .subtask-branch:not(:last-child)::after {
+      position: absolute;
+      top: 50%;
+      bottom: -0.55rem;
+      left: 0;
+      border-left: 1.2px solid color-mix(in srgb, var(--color-rule) 42%, transparent);
+      content: "";
+      pointer-events: none;
+    }
+  `,
 })
 export class ManageTasksComponent implements OnInit {
   private readonly tasks = inject(TasksService);
@@ -33,6 +75,7 @@ export class ManageTasksComponent implements OnInit {
   protected readonly newTaskParent = signal<Task | null>(null);
   protected readonly editingTask = signal<Task | null>(null);
   protected readonly deletingTask = signal<Task | null>(null);
+  protected readonly collapsedTaskIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly taskGroups = computed(() => groupTasksByParent(this.taskList()));
 
@@ -81,6 +124,17 @@ export class ManageTasksComponent implements OnInit {
 
   protected subtaskCountOf(task: Task): number {
     return this.taskList().filter((candidate) => candidate.parentTaskId === task.id).length;
+  }
+
+  protected toggleSubtasks(taskId: string): void {
+    this.collapsedTaskIds.update((collapsedTaskIds) => {
+      const nextCollapsedTaskIds = new Set(collapsedTaskIds);
+      if (nextCollapsedTaskIds.has(taskId))
+        nextCollapsedTaskIds.delete(taskId);
+      else
+        nextCollapsedTaskIds.add(taskId);
+      return nextCollapsedTaskIds;
+    });
   }
 
   protected deleteTask(): void {

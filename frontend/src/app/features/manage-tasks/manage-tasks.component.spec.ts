@@ -58,18 +58,36 @@ describe('ManageTasksComponent', () => {
     return fixture.componentInstance as any;
   }
 
-  const task = (id: string, name: string, color = TaskColor.Slate): Task => ({
+  const task = (
+    id: string,
+    name: string,
+    color = TaskColor.Slate,
+    parentTaskId: string | null = null,
+  ): Task => ({
     id,
     name,
     createdAt: '2026-01-01T00:00:00Z',
     color,
-    parentTaskId: null,
+    parentTaskId,
   });
 
   it('loads tasks on init', () => {
     const cmp = setup([task('a', 'Reading')]);
     expect(cmp.taskList().length).toBe(1);
     expect(cmp.loading()).toBe(false);
+  });
+
+  it('toggles subtask visibility for a parent task', () => {
+    const cmp = setup([
+      task('parent', 'Workout'),
+      task('child', 'Cycling', TaskColor.Slate, 'parent'),
+    ]);
+
+    expect(cmp.collapsedTaskIds().has('parent')).toBe(false);
+    cmp.toggleSubtasks('parent');
+    expect(cmp.collapsedTaskIds().has('parent')).toBe(true);
+    cmp.toggleSubtasks('parent');
+    expect(cmp.collapsedTaskIds().has('parent')).toBe(false);
   });
 
   it('updates the task, closes the modal, and reloads', () => {

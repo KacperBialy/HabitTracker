@@ -15,42 +15,77 @@
         <div class="text-muted px-1 py-4 text-sm">No tasks yet — create your first one.</div>
       } @else {
         @for (group of taskGroups(); track group.root.id) {
-          <div class="group flex flex-wrap items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
-                      border-[1.4px] bg-paper px-2.5 py-1.5">
-            <span class="inline-block h-2.5 w-2.5 shrink-0 rounded-[3px]" [style.background]="group.root.color | taskColorHex"></span>
-            <span class="min-w-0 flex-[1_1_12rem] truncate text-sm">{{ group.root.name }}</span>
-            <button type="button"
-                    class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
-                           sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                    (click)="openNewSubtask(group.root)">+ sub</button>
-            <button type="button"
-                    class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
-                           sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                    [attr.aria-label]="'Edit ' + group.root.name"
-                    (click)="editingTask.set(group.root)">Edit</button>
-            <button type="button"
-                    class="btn danger px-2.5 py-1 text-xs opacity-100 transition-opacity
-                           sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                    [attr.aria-label]="'Delete ' + group.root.name"
-                    (click)="deletingTask.set(group.root)">Delete</button>
-          </div>
-          @for (child of group.children; track child.id) {
-            <div class="group ml-5 flex flex-wrap items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
+          <div class="task-group">
+            <div class="group flex flex-wrap items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
                         border-[1.4px] bg-paper px-2.5 py-1.5">
-              <span class="inline-block h-2 w-2 shrink-0 rounded-[3px]" [style.background]="child.color | taskColorHex"></span>
-              <span class="min-w-0 flex-[1_1_12rem] truncate text-sm">{{ child.name }}</span>
+              @if (group.children.length > 0) {
+                <button type="button"
+                        class="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm
+                               text-muted transition-colors hover:bg-black/5 hover:text-ink"
+                        [attr.aria-label]="(collapsedTaskIds().has(group.root.id) ? 'Expand ' : 'Collapse ') + group.root.name + ' subtasks'"
+                        [attr.aria-expanded]="!collapsedTaskIds().has(group.root.id)"
+                        (click)="toggleSubtasks(group.root.id)">
+                  <svg class="h-3 w-3 transition-transform"
+                       [class.-rotate-90]="collapsedTaskIds().has(group.root.id)"
+                       viewBox="0 0 12 12"
+                       aria-hidden="true">
+                    <path d="M2.5 4.25 6 7.5l3.5-3.25"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.4" />
+                  </svg>
+                </button>
+              }
+              <span class="inline-block h-2.5 w-2.5 shrink-0 rounded-[3px]"
+                    [style.background]="group.root.color | taskColorHex"></span>
+              <span class="flex min-w-0 flex-[1_1_12rem] items-baseline gap-2">
+                <span class="truncate text-sm">{{ group.root.name }}</span>
+                @if (group.children.length > 0) {
+                  <span class="shrink-0 text-[0.6875rem] text-muted">{{ group.children.length }} sub</span>
+                }
+              </span>
               <button type="button"
                       class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
                              sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                      [attr.aria-label]="'Edit ' + child.name"
-                      (click)="editingTask.set(child)">Edit</button>
+                      (click)="openNewSubtask(group.root)">+ sub</button>
+              <button type="button"
+                      class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
+                             sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
+                      [attr.aria-label]="'Edit ' + group.root.name"
+                      (click)="editingTask.set(group.root)">Edit</button>
               <button type="button"
                       class="btn danger px-2.5 py-1 text-xs opacity-100 transition-opacity
                              sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                      [attr.aria-label]="'Delete ' + child.name"
-                      (click)="deletingTask.set(child)">Delete</button>
+                      [attr.aria-label]="'Delete ' + group.root.name"
+                      (click)="deletingTask.set(group.root)">Delete</button>
             </div>
-          }
+            @if (!collapsedTaskIds().has(group.root.id)) {
+              <div class="subtask-list">
+                @for (child of group.children; track child.id) {
+                  <div class="subtask-branch">
+                    <div class="group flex flex-wrap items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px]
+                                border-[1.4px] bg-paper px-2.5 py-1.5">
+                      <span class="inline-block h-2 w-2 shrink-0 rounded-[3px]"
+                            [style.background]="child.color | taskColorHex"></span>
+                      <span class="min-w-0 flex-[1_1_12rem] truncate text-sm">{{ child.name }}</span>
+                      <button type="button"
+                              class="btn px-2.5 py-1 text-xs opacity-100 transition-opacity
+                                     sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
+                              [attr.aria-label]="'Edit ' + child.name"
+                              (click)="editingTask.set(child)">Edit</button>
+                      <button type="button"
+                              class="btn danger px-2.5 py-1 text-xs opacity-100 transition-opacity
+                                     sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
+                              [attr.aria-label]="'Delete ' + child.name"
+                              (click)="deletingTask.set(child)">Delete</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
         }
       }
     </div>

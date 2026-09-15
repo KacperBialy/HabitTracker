@@ -52,23 +52,34 @@
         <div class="text-muted px-1 py-4 text-sm">No tasks yet — create your first one.</div>
       } @else {
         @for (task of taskVms(); track task.id) {
-          <app-task-row [name]="task.name"
-                        [color]="task.color"
-                        [todayMinutes]="task.totalMinutes"
-                        [isTracking]="task.id === activeTaskId()"
-                        (log)="openLog(task)"
-                        (start)="startTimer(task)"
-                        (stop)="stopTimer()" />
-          @for (child of task.children; track child.id) {
-            <app-task-row [name]="child.name"
-                          [color]="child.color"
-                          [todayMinutes]="child.ownMinutes"
-                          [isTracking]="child.id === activeTaskId()"
-                          [isSubtask]="true"
-                          (log)="openLog(child)"
-                          (start)="startTimer(child)"
+          <div class="task-group">
+            <app-task-row [name]="task.name"
+                          [color]="task.color"
+                          [todayMinutes]="task.totalMinutes"
+                          [isTracking]="task.id === activeTaskId()"
+                          [subtaskCount]="task.children.length"
+                          [expanded]="!collapsedTaskIds().has(task.id)"
+                          (toggleSubtasks)="toggleSubtasks(task.id)"
+                          (log)="openLog(task)"
+                          (start)="startTimer(task)"
                           (stop)="stopTimer()" />
-          }
+            @if (!collapsedTaskIds().has(task.id)) {
+              <div class="subtask-list">
+                @for (child of task.children; track child.id) {
+                  <div class="subtask-branch">
+                    <app-task-row [name]="child.name"
+                                  [color]="child.color"
+                                  [todayMinutes]="child.ownMinutes"
+                                  [isTracking]="child.id === activeTaskId()"
+                                  [isSubtask]="true"
+                                  (log)="openLog(child)"
+                                  (start)="startTimer(child)"
+                                  (stop)="stopTimer()" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
         }
       }
     </div>
