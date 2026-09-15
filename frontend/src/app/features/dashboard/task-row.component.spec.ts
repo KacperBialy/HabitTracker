@@ -2,6 +2,14 @@ import { TestBed } from '@angular/core/testing';
 
 import { TaskRowComponent } from './task-row.component';
 
+function swatchClass(isSubtask = false): string {
+  const fixture = TestBed.createComponent(TaskRowComponent);
+  fixture.componentRef.setInput('isSubtask', isSubtask);
+  fixture.detectChanges();
+  const swatch = fixture.nativeElement.querySelector('span') as HTMLElement;
+  return swatch.className;
+}
+
 describe('TaskRowComponent.todayLabel', () => {
   function labelFor(minutes: number): string {
     const fixture = TestBed.createComponent(TaskRowComponent);
@@ -28,5 +36,21 @@ describe('TaskRowComponent.todayLabel', () => {
 
   it('omits minutes on a whole hour', () => {
     expect(labelFor(120)).toBe('2h today');
+  });
+});
+
+describe('TaskRowComponent swatch', () => {
+  it('sizes parent swatches so the color is visible', () => {
+    const classes = swatchClass().split(/\s+/);
+    expect(classes).toContain('h-2.5');
+    expect(classes).toContain('w-2.5');
+  });
+
+  it('uses a smaller swatch for subtasks', () => {
+    const classes = swatchClass(true).split(/\s+/);
+    expect(classes).toContain('h-2');
+    expect(classes).toContain('w-2');
+    expect(classes).not.toContain('h-2.5');
+    expect(classes).not.toContain('w-2.5');
   });
 });

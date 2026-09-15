@@ -13,10 +13,7 @@ import { DEFAULT_TASK_COLOR, TaskColor } from '../../core/task-colors';
                 border-[1.4px] bg-paper px-2.5 py-1.5"
          [class.ml-5]="isSubtask()">
       <span class="inline-block shrink-0 rounded-[3px]"
-            [class.h-2.5]="!isSubtask()"
-            [class.w-2.5]="!isSubtask()"
-            [class.h-2]="isSubtask()"
-            [class.w-2]="isSubtask()"
+            [class]="swatchSizeClass()"
             [style.background]="color() | taskColorHex"></span>
       <span class="min-w-0 flex-[1_1_12rem] truncate text-sm">{{ name() }}</span>
       @if (todayLabel()) {
@@ -59,4 +56,6 @@ export class TaskRowComponent {
     const label = formatMinutes(this.todayMinutes());
     return label ? `${label} today` : '';
   });
+
+  readonly swatchSizeClass = computed(() => (this.isSubtask() ? 'h-2 w-2' : 'h-2.5 w-2.5'));
 }
