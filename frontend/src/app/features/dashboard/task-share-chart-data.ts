@@ -15,6 +15,8 @@ export type DonutRangeDays = 7 | 30;
 
 export interface DonutChartData {
   labels: string[];
+  /** Parent task id per slice, parallel to `labels` — joins the legend to trend rows. */
+  taskIds: string[];
   datasets: {
     data: number[];
     backgroundColor: string[];
@@ -85,6 +87,7 @@ export function buildDonutChartData(entries: DayEntry[], rangeDays: number): Don
 
   return {
     labels: orderedSlices.map((slice) => slice.taskName),
+    taskIds: orderedSlices.map((slice) => slice.taskId),
     datasets: [
       {
         data: orderedSlices.map((slice) => slice.minutes),

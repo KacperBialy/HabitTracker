@@ -17,7 +17,6 @@ import { ContributionsHeatmapComponent } from './contributions-heatmap.component
 import { DayHistoryComponent } from './day-history.component';
 import { TimePerTaskChartComponent } from './time-per-task-chart.component';
 import { TaskShareChartComponent } from './task-share-chart.component';
-import { TrendComparisonComponent } from './trend-comparison.component';
 
 export interface TaskVm {
   id: string;
@@ -39,7 +38,6 @@ export interface TaskVm {
     TaskRowComponent,
     NewTaskModalComponent,
     LogTimeModalComponent,
-    TrendComparisonComponent,
     ContributionsHeatmapComponent,
     TimePerTaskChartComponent,
     TaskShareChartComponent,

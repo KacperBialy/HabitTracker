@@ -27,16 +27,21 @@
       }
     </div>
 
-    <!-- Legend / breakdown -->
+    <!-- Legend / breakdown: share of this window, then change vs the window before. -->
     @if (legendItems().length > 0) {
-      <div class="flex w-full flex-col gap-1.5 text-[0.8125rem]">
-        @for (item of legendItems(); track $index) {
-          <div class="flex items-center gap-2">
+      <div class="share-legend flex w-full flex-col gap-1.5 text-[0.8125rem]">
+        @for (item of legendItems(); track item.taskId) {
+          <div class="flex items-center gap-2" [attr.aria-label]="item.ariaLabel">
             <span class="h-3 w-3 shrink-0 rounded-full" [style.background]="item.color"></span>
             <span class="truncate">{{ item.label }}</span>
             <span class="flex-1"></span>
-            <span class="text-muted">{{ item.duration }}</span>
-            <span class="w-10 text-right">{{ item.share }}%</span>
+            <span class="text-muted min-w-[4.5rem] text-right tabular-nums">{{ item.duration }}</span>
+            <span class="share-legend-share">{{ item.share }}%</span>
+            <span
+              [class]="'trend-task-delta ' + item.deltaKind"
+              [attr.title]="item.deltaTitle">
+              {{ item.deltaText }}
+            </span>
           </div>
         }
       </div>

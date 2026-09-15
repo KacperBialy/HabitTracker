@@ -14,6 +14,34 @@ import { DonutRangeDays } from './task-share-chart-data';
 /** Direction of travel vs. the previous window; 'flat' also covers "no baseline". */
 export type TrendDirection = 'up' | 'down' | 'flat';
 
+/** Arrow glyphs for the delta chip and per-task deltas. */
+export const TREND_ARROW: Record<TrendDirection, string> = {
+  up: '↑',
+  down: '↓',
+  flat: '',
+};
+
+export type TrendDeltaKind = TrendDirection | 'new';
+
+export interface TrendDelta {
+  text: string;
+  kind: TrendDeltaKind;
+}
+
+/**
+ * Per-task change label: "new" when the previous window is empty, "0%" when
+ * unchanged, otherwise an arrow plus the magnitude. Share of the current
+ * window is a different number and must stay visually separate.
+ */
+export function trendDeltaLabel(percentChange: number | null, direction: TrendDirection): TrendDelta {
+  if (percentChange === null) return { text: 'new', kind: 'new' };
+  if (percentChange === 0) return { text: '0%', kind: 'flat' };
+  return {
+    text: `${TREND_ARROW[direction]} ${Math.abs(percentChange)}%`,
+    kind: direction,
+  };
+}
+
 export interface TrendRow {
   taskId: string;
   taskName: string;

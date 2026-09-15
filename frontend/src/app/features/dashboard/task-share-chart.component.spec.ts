@@ -63,6 +63,7 @@ describe('buildDonutChartData', () => {
   it('returns no slices and a zero total when there is nothing logged', () => {
     const data = buildDonutChartData([], 7);
     expect(data.labels).toEqual([]);
+    expect(data.taskIds).toEqual([]);
     expect(data.datasets[0].data).toEqual([]);
     expect(data.totalMinutes).toBe(0);
   });
@@ -77,6 +78,7 @@ describe('buildDonutChartData', () => {
       7,
     );
     expect(data.labels).toEqual(['Reading', 'Guitar']);
+    expect(data.taskIds).toEqual(['task-1', 'task-2']);
     expect(data.datasets[0].data).toEqual([45, 10]);
     expect(data.totalMinutes).toBe(55);
   });
@@ -91,6 +93,7 @@ describe('buildDonutChartData', () => {
       7,
     );
     expect(data.labels).toEqual(['Gamma', 'Alpha', 'Beta']);
+    expect(data.taskIds).toEqual(['task-c', 'task-a', 'task-b']);
   });
 
   it('colors each slice from the task color map', () => {
@@ -149,7 +152,7 @@ describe('TaskShareChartComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('15m');
   });
 
-  it('renders a breakdown row per task with duration and share', () => {
+  it('renders a breakdown row per task with duration, share, and a new delta', () => {
     const fixture = build([
       entry({ taskId: 'task-1', taskName: 'Reading', minutes: 90 }),
       entry({ taskId: 'task-2', taskName: 'Guitar', minutes: 30, taskColor: TaskColor.Blue }),
@@ -161,6 +164,31 @@ describe('TaskShareChartComponent', () => {
     expect(text).toContain('Guitar');
     expect(text).toContain('25%');
     expect(text).toContain('2h'); // total in the donut hole
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.trend-task-delta.new')).toHaveLength(2);
+  });
+
+  it('keeps share of this window next to a colored delta vs last window', () => {
+    const today = localDateString();
+    const fixture = build([
+      entry({ minutes: 90 }),
+      entry({ date: addDaysLocal(today, -7), minutes: 30 }),
+    ]);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.share-legend-share')?.textContent).toBe('100%');
+    const delta = host.querySelector('.trend-task-delta.up') as HTMLElement;
+    expect(delta.textContent?.trim()).toBe('↑ 200%');
+    expect(delta.getAttribute('title')).toBe('↑ 200% vs last week');
+  });
+
+  it('shows a down delta when the task declined vs the previous window', () => {
+    const today = localDateString();
+    const fixture = build([
+      entry({ minutes: 25 }),
+      entry({ date: addDaysLocal(today, -7), minutes: 100 }),
+    ]);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.trend-task-delta.down')?.textContent?.trim(),
+    ).toBe('↓ 75%');
   });
 
   it('shows the empty state when nothing is logged in the window', () => {

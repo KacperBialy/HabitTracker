@@ -1,7 +1,4 @@
-import { TestBed } from '@angular/core/testing';
-
-import { TrendComparisonComponent } from './trend-comparison.component';
-import { buildTrendComparison } from './trend-comparison-data';
+import { buildTrendComparison, trendDeltaLabel } from './trend-comparison-data';
 import { DayEntry } from '../../core/models';
 import { localDateString } from '../../core/date-utils';
 import { TASK_COLOR_HEX, TaskColor } from '../../core/task-colors';
@@ -24,6 +21,24 @@ function entry(
 }
 
 const today = localDateString();
+
+describe('trendDeltaLabel', () => {
+  it('labels a missing baseline as new, not 0%', () => {
+    expect(trendDeltaLabel(null, 'flat')).toEqual({ text: 'new', kind: 'new' });
+  });
+
+  it('labels an unchanged window as 0%', () => {
+    expect(trendDeltaLabel(0, 'flat')).toEqual({ text: '0%', kind: 'flat' });
+  });
+
+  it('prefixes an increase with an up arrow', () => {
+    expect(trendDeltaLabel(43, 'up')).toEqual({ text: '↑ 43%', kind: 'up' });
+  });
+
+  it('prefixes a decline with a down arrow', () => {
+    expect(trendDeltaLabel(-11, 'down')).toEqual({ text: '↓ 11%', kind: 'down' });
+  });
+});
 
 describe('buildTrendComparison', () => {
   it('splits entries into the current and previous window', () => {
@@ -141,94 +156,5 @@ describe('buildTrendComparison', () => {
     const result = buildTrendComparison([], 7);
 
     expect(result.mostActiveWeekday).toBeNull();
-  });
-});
-
-describe('TrendComparisonComponent', () => {
-  function createComponent(entries: DayEntry[]) {
-    const fixture = TestBed.createComponent(TrendComparisonComponent);
-    fixture.componentRef.setInput('entries', entries);
-    fixture.detectChanges();
-    return fixture;
-  }
-
-  it('renders the total and an up chip with the delta magnitude', () => {
-    const fixture = createComponent([entry(today, 120), entry(addDaysLocal(today, -7), 60)]);
-
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('2h');
-    expect(text).toContain('↑ 100%');
-    expect(fixture.nativeElement.querySelector('.trend-chip.up')).toBeTruthy();
-  });
-
-  it('renders a down chip and the absolute minute difference', () => {
-    const fixture = createComponent([entry(today, 30), entry(addDaysLocal(today, -7), 90)]);
-
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('↓ 67%');
-    expect(text).toContain('1h less than last week');
-    expect(fixture.nativeElement.querySelector('.trend-chip.down')).toBeTruthy();
-  });
-
-  it('shows a neutral chip when there is no baseline', () => {
-    const fixture = createComponent([entry(today, 45)]);
-
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('no comparison yet');
-    expect(text).toContain('this is your baseline');
-    expect(fixture.nativeElement.querySelector('.trend-chip.none')).toBeTruthy();
-  });
-
-  it('lists one row per task with a share bar sized to its share', () => {
-    const fixture = createComponent([
-      entry(today, 90, 'task-1', 'Guitar', TaskColor.Green),
-      entry(today, 30, 'task-2', 'Reading'),
-      entry(addDaysLocal(today, -7), 60, 'task-1', 'Guitar', TaskColor.Green),
-    ]);
-
-    const rows = fixture.nativeElement.querySelectorAll('.trend-task');
-    expect(rows).toHaveLength(2);
-
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Guitar');
-    expect(text).toContain('Reading');
-    expect(text).toContain('↑ 50%');
-
-    const firstShare = rows[0].querySelector('.trend-share i') as HTMLElement;
-    expect(firstShare.style.width).toBe('75%'); // 90 of 120 minutes
-  });
-
-  it('labels a task with no previous activity as new', () => {
-    const fixture = createComponent([entry(today, 45, 'task-3', 'Cooking')]);
-
-    expect(fixture.nativeElement.querySelector('.trend-task-delta.new')?.textContent?.trim()).toBe('new');
-  });
-
-  it('summarises task count and the most active weekday in the footer', () => {
-    const fixture = createComponent([entry(today, 45), entry(today, 10, 'task-2', 'Reading')]);
-
-    const foot = fixture.nativeElement.querySelector('.trend-foot')?.textContent as string;
-    expect(foot).toContain('2 tasks tracked');
-    expect(foot).toContain('most active day:');
-  });
-
-  it('recomputes when the range switches to month', () => {
-    const fixture = createComponent([entry(addDaysLocal(today, -10), 60)]);
-    const component = fixture.componentInstance as unknown as {
-      rangeDays: { set: (value: 7 | 30) => void };
-      comparison: () => { currentMinutes: number };
-    };
-
-    expect(component.comparison().currentMinutes).toBe(0);
-
-    component.rangeDays.set(30);
-    fixture.detectChanges();
-    expect(component.comparison().currentMinutes).toBe(60);
-  });
-
-  it('shows an empty-state message when nothing is logged', () => {
-    const fixture = createComponent([]);
-
-    expect(fixture.nativeElement.textContent as string).toContain('No time logged in this period.');
   });
 });
