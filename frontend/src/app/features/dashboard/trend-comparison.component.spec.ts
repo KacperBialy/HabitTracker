@@ -20,7 +20,7 @@ function entry(
   taskName = 'Reading',
   taskColor = TaskColor.Slate,
 ): DayEntry {
-  return { id: crypto.randomUUID(), date, taskId, taskName, minutes, taskColor };
+  return { id: crypto.randomUUID(), date, taskId, taskName, minutes, taskColor, parent: null };
 }
 
 const today = localDateString();

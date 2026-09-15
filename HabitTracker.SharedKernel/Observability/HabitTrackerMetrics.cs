@@ -40,10 +40,15 @@ public sealed class HabitTrackerMetrics
             "habittracker.timer.sessions", unit: "{session}", description: "Time entries by how they were recorded.");
     }
 
-    public void TaskCreated(string colorName)
-        => _tasksCreated.Add(1, new KeyValuePair<string, object?>("color", colorName));
+    /// <param name="colorName">Bounded <c>TaskColor</c> member name.</param>
+    /// <param name="kind">Bounded: <c>root</c> or <c>subtask</c>.</param>
+    public void TaskCreated(string colorName, string kind)
+        => _tasksCreated.Add(1,
+            new KeyValuePair<string, object?>("color", colorName),
+            new KeyValuePair<string, object?>("kind", kind));
 
-    public void TaskDeleted() => _tasksDeleted.Add(1);
+    /// <param name="count">Tasks removed, including cascaded subtasks when a parent is deleted.</param>
+    public void TaskDeleted(int count = 1) => _tasksDeleted.Add(count);
 
     public void TimeLogged(int minutes, bool fromTimer)
     {

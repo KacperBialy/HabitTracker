@@ -6,4 +6,5 @@ public sealed record DayEntryDto(
     TaskId TaskId,
     string TaskName,
     int Minutes,
-    TaskColor TaskColor);
+    TaskColor TaskColor,
+    DayEntryParentDto? Parent = null);

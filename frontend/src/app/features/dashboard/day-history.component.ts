@@ -4,6 +4,7 @@ import { formatDate } from '@angular/common';
 import { DayEntry } from '../../core/models';
 import { formatMinutes, localDateString } from '../../core/date-utils';
 import { TaskColorHexPipe } from '../../core/task-color-hex.pipe';
+import { entryDisplayName as formatEntryName } from '../../core/task-rollup';
 
 interface HistoryRow {
   date: string;
@@ -61,12 +62,12 @@ interface HistoryRow {
                     <div class="flex min-w-0 flex-1 items-center gap-2 rounded-[6px_9px_5px_8px/8px_5px_9px_6px] border-[1.4px] border-rule bg-paper px-3 py-1.5 text-sm">
                       <span class="min-w-0 flex-1 truncate">
                         Logged <span class="font-semibold">{{ minutesLabel(entry.minutes) }}</span>
-                        on <span class="font-semibold">{{ entry.taskName }}</span>
+                        on <span class="font-semibold">{{ entryDisplayName(entry) }}</span>
                       </span>
                       <button type="button"
                               class="btn danger px-2.5 py-0.5 text-xs opacity-100 transition-opacity
                                      sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100"
-                              [attr.aria-label]="'Delete ' + minutesLabel(entry.minutes) + ' on ' + entry.taskName"
+                              [attr.aria-label]="'Delete ' + minutesLabel(entry.minutes) + ' on ' + entryDisplayName(entry)"
                               (click)="deleteEntry.emit(entry)">Delete</button>
                     </div>
                   </div>
@@ -125,6 +126,10 @@ export class DayHistoryComponent {
 
   protected minutesLabel(minutes: number): string {
     return formatMinutes(minutes);
+  }
+
+  protected entryDisplayName(entry: DayEntry): string {
+    return formatEntryName(entry);
   }
 }
 

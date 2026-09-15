@@ -38,6 +38,17 @@
           <span class="trend-task-delta" [class]="'trend-task-delta ' + (row.isNew ? 'new' : row.direction)">
             {{ row.deltaLabel }}
           </span>
+          @if (row.breakdown.length > 1) {
+            <div class="trend-breakdown" role="tooltip">
+              @for (line of row.breakdown; track line.taskId) {
+                <div class="trend-breakdown-line">
+                  <span class="trend-dot" [style.background]="line.colorHex"></span>
+                  <span>{{ line.name }}</span>
+                  <span>{{ line.duration }}</span>
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>

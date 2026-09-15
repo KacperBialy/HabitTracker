@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 
 import { DayEntry } from '../../core/models';
 import { formatMinutes } from '../../core/date-utils';
+import { TASK_COLOR_HEX } from '../../core/task-colors';
 import { DonutRangeDays } from './task-share-chart-data';
 import { TrendDirection, buildTrendComparison } from './trend-comparison-data';
 
@@ -85,6 +86,12 @@ export class TrendComparisonComponent {
           : task.percentChange === 0
             ? '0%'
             : `${DIRECTION_ARROW[task.direction]} ${Math.abs(task.percentChange)}%`,
+      breakdown: task.breakdown.map((line) => ({
+        taskId: line.taskId,
+        name: line.name,
+        colorHex: TASK_COLOR_HEX[line.color],
+        duration: formatMinutes(line.minutes),
+      })),
     })),
   );
 

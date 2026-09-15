@@ -14,6 +14,7 @@ import { ArcElement, Chart, ChartOptions, DoughnutController, Tooltip, TooltipIt
 
 import { DayEntry } from '../../core/models';
 import { formatMinutes } from '../../core/date-utils';
+import { BreakdownLine } from '../../core/task-rollup';
 import { DonutRangeDays, buildDonutChartData } from './task-share-chart-data';
 
 Chart.register(DoughnutController, ArcElement, Tooltip);
@@ -46,6 +47,14 @@ function buildChartOptions(): ChartOptions<'doughnut'> {
             );
             const share = total > 0 ? Math.round((minutes / total) * 100) : 0;
             return ` ${context.label}: ${formatMinutes(minutes)} (${share}%)`;
+          },
+          afterBody: (items: TooltipItem<'doughnut'>[]) => {
+            const item = items[0];
+            if (!item) return [];
+            const lines =
+              (item.dataset as { breakdowns?: BreakdownLine[][] }).breakdowns?.[item.dataIndex] ?? [];
+            if (lines.length <= 1) return [];
+            return lines.map((line) => ` ${line.name}: ${formatMinutes(line.minutes)}`);
           },
         },
       },

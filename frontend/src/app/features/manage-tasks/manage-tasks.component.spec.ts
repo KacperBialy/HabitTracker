@@ -63,6 +63,7 @@ describe('ManageTasksComponent', () => {
     name,
     createdAt: '2026-01-01T00:00:00Z',
     color,
+    parentTaskId: null,
   });
 
   it('loads tasks on init', () => {

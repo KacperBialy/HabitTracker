@@ -1,6 +1,14 @@
 import { DayEntry } from '../../core/models';
 import { localDateString } from '../../core/date-utils';
 import { TASK_COLOR_HEX } from '../../core/task-colors';
+import {
+  BreakdownLine,
+  addBreakdownMinutes,
+  orderedBreakdown,
+  rollupTaskColor,
+  rollupTaskId,
+  rollupTaskName,
+} from '../../core/task-rollup';
 import { DonutRangeDays } from './task-share-chart-data';
 
 /** Direction of travel vs. the previous window; 'flat' also covers "no baseline". */
@@ -19,6 +27,8 @@ export interface TrendRow {
   direction: TrendDirection;
   /** Share of the current window's total, 0-100 — drives the row's share bar width. */
   sharePercent: number;
+  /** Current-window split shown on hover: parent own minutes first, then each child. */
+  breakdown: BreakdownLine[];
 }
 
 /** One day of the current window — used to pick the busiest weekday. */
@@ -47,6 +57,7 @@ interface TaskTotals {
   color: string;
   currentMinutes: number;
   previousMinutes: number;
+  currentBreakdown: Map<string, BreakdownLine>;
 }
 
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -95,22 +106,25 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
     const inPrevious = entry.date >= previousStart && entry.date <= previousEnd;
     if (!inCurrent && !inPrevious) continue;
 
-    let totals = totalsByTask.get(entry.taskId);
+    const parentId = rollupTaskId(entry);
+    let totals = totalsByTask.get(parentId);
     if (!totals) {
       totals = {
-        taskId: entry.taskId,
-        taskName: entry.taskName,
-        color: TASK_COLOR_HEX[entry.taskColor],
+        taskId: parentId,
+        taskName: rollupTaskName(entry),
+        color: TASK_COLOR_HEX[rollupTaskColor(entry)],
         currentMinutes: 0,
         previousMinutes: 0,
+        currentBreakdown: new Map(),
       };
-      totalsByTask.set(entry.taskId, totals);
+      totalsByTask.set(parentId, totals);
     }
 
     if (inCurrent) {
       totals.currentMinutes += entry.minutes;
       currentMinutes += entry.minutes;
       minutesByDate.set(entry.date, (minutesByDate.get(entry.date) ?? 0) + entry.minutes);
+      addBreakdownMinutes(totals.currentBreakdown, entry);
     } else {
       totals.previousMinutes += entry.minutes;
       previousMinutes += entry.minutes;
@@ -135,6 +149,7 @@ export function buildTrendComparison(entries: DayEntry[], rangeDays: DonutRangeD
         direction: directionOf(change),
         sharePercent:
           currentMinutes > 0 ? Math.round((totals.currentMinutes / currentMinutes) * 100) : 0,
+        breakdown: orderedBreakdown(totals.currentBreakdown, totals.taskId),
       };
     });
 

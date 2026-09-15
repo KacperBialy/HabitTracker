@@ -6,6 +6,14 @@ export interface Task {
   name: string;
   createdAt: string;
   color: TaskColor;
+  parentTaskId: string | null;
+}
+
+/** Mirrors DayEntryParentDto — present on subtask logs, null on root-task logs. */
+export interface DayEntryParent {
+  id: string;
+  name: string;
+  color: TaskColor;
 }
 
 /** Mirrors DayEntryDto from GET /api/tasks/timelogs/entries?from=&to= — date is an ISO YYYY-MM-DD string. */
@@ -16,6 +24,7 @@ export interface DayEntry {
   taskName: string;
   minutes: number;
   taskColor: TaskColor;
+  parent: DayEntryParent | null;
 }
 
 /** Mirrors TimeLogDto — logDate is an ISO YYYY-MM-DD string. */

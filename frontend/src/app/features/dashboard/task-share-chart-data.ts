@@ -1,6 +1,14 @@
 import { DayEntry } from '../../core/models';
 import { localDateString } from '../../core/date-utils';
 import { TASK_COLOR_HEX } from '../../core/task-colors';
+import {
+  BreakdownLine,
+  addBreakdownMinutes,
+  orderedBreakdown,
+  rollupTaskColor,
+  rollupTaskId,
+  rollupTaskName,
+} from '../../core/task-rollup';
 
 /** Donut windows: a rolling week and a rolling month, both ending today. */
 export type DonutRangeDays = 7 | 30;
@@ -13,17 +21,20 @@ export interface DonutChartData {
     borderColor: string;
     borderWidth: number;
     hoverOffset: number;
+    /** Per-slice hover split: parent own minutes first, then each child. */
+    breakdowns: BreakdownLine[][];
   }[];
   /** Total minutes across all slices — rendered in the donut's hole. */
   totalMinutes: number;
 }
 
-/** One task's accumulator while rolling entries up into a slice. */
+/** One parent task's accumulator while rolling entries up into a slice. */
 interface TaskSlice {
   taskId: string;
   taskName: string;
   color: string;
   minutes: number;
+  breakdown: Map<string, BreakdownLine>;
 }
 
 /** Paper background from styles.css — slice borders in this color read as gaps between segments. */
@@ -40,7 +51,7 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
-/** Rolls DayEntry rows up into one donut slice per task over the last `rangeDays` days ending today. */
+/** Rolls DayEntry rows up into one donut slice per parent over the last `rangeDays` days ending today. */
 export function buildDonutChartData(entries: DayEntry[], rangeDays: number): DonutChartData {
   const end = parseLocalDate(localDateString());
   const start = localDateString(addDays(end, -(rangeDays - 1)));
@@ -49,17 +60,20 @@ export function buildDonutChartData(entries: DayEntry[], rangeDays: number): Don
   const slicesByTask = new Map<string, TaskSlice>();
   for (const entry of entries) {
     if (entry.date < start || entry.date > endKey) continue;
-    let slice = slicesByTask.get(entry.taskId);
+    const parentId = rollupTaskId(entry);
+    let slice = slicesByTask.get(parentId);
     if (!slice) {
       slice = {
-        taskId: entry.taskId,
-        taskName: entry.taskName,
-        color: TASK_COLOR_HEX[entry.taskColor],
+        taskId: parentId,
+        taskName: rollupTaskName(entry),
+        color: TASK_COLOR_HEX[rollupTaskColor(entry)],
         minutes: 0,
+        breakdown: new Map(),
       };
-      slicesByTask.set(entry.taskId, slice);
+      slicesByTask.set(parentId, slice);
     }
     slice.minutes += entry.minutes;
+    addBreakdownMinutes(slice.breakdown, entry);
   }
 
   // Largest share first so the donut reads as a ranking; taskId tiebreak keeps ties stable.
@@ -78,6 +92,7 @@ export function buildDonutChartData(entries: DayEntry[], rangeDays: number): Don
         borderColor: PAPER,
         borderWidth: 2,
         hoverOffset: 6,
+        breakdowns: orderedSlices.map((slice) => orderedBreakdown(slice.breakdown, slice.taskId)),
       },
     ],
     totalMinutes: orderedSlices.reduce((sum, slice) => sum + slice.minutes, 0),

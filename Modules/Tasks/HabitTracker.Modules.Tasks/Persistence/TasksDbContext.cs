@@ -31,7 +31,18 @@ internal sealed class TasksDbContext(DbContextOptions<TasksDbContext> options) :
             b.Property(t => t.Color).IsRequired().HasDefaultValue(TaskColor.Slate);
             b.Property(t => t.CreatedAt).IsRequired();
 
+            b.Property(task => task.ParentTaskId)
+                .HasConversion(
+                    parentTaskId => parentTaskId.HasValue ? parentTaskId.Value.Value : (Guid?)null,
+                    value => value.HasValue ? new TaskId(value.Value) : null);
+
+            b.HasOne<TaskItem>()
+                .WithMany()
+                .HasForeignKey(task => task.ParentTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             b.HasIndex(t => t.OwnerId);
+            b.HasIndex(task => task.ParentTaskId);
         });
 
         modelBuilder.Entity<TimeLogEntry>(b =>

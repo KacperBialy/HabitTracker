@@ -1,7 +1,13 @@
-import { ChangeDetectionStrategy, Component, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
 import { TaskColorHexPipe } from '../../core/task-color-hex.pipe';
 import { DEFAULT_TASK_COLOR, TASK_COLOR_OPTIONS, TaskColor } from '../../core/task-colors';
+
+export interface NewTaskPayload {
+  name: string;
+  color: TaskColor;
+  parentTaskId: string | null;
+}
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,7 +17,10 @@ import { DEFAULT_TASK_COLOR, TASK_COLOR_OPTIONS, TaskColor } from '../../core/ta
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/15 p-4"
          (click)="cancel.emit()">
       <div class="box w-full max-w-80 p-4 shadow-[4px_6px_0_rgba(0,0,0,0.12)] sm:p-5" (click)="$event.stopPropagation()">
-        <div class="display mb-3 text-xl">New task</div>
+        <div class="display mb-3 text-xl">{{ parentTaskId() ? 'New subtask' : 'New task' }}</div>
+        @if (parentName()) {
+          <div class="text-muted mb-3 text-[0.8125rem]">under {{ parentName() }}</div>
+        }
         <input
           class="box w-full border-[1.2px] px-2.5 py-2 text-sm outline-none"
           placeholder="Task name"
@@ -47,7 +56,9 @@ import { DEFAULT_TASK_COLOR, TASK_COLOR_OPTIONS, TaskColor } from '../../core/ta
   `,
 })
 export class NewTaskModalComponent {
-  readonly create = output<{ name: string; color: TaskColor }>();
+  readonly parentTaskId = input<string | null>(null);
+  readonly parentName = input<string | null>(null);
+  readonly create = output<NewTaskPayload>();
   readonly cancel = output<void>();
 
   protected readonly name = signal('');
@@ -57,6 +68,6 @@ export class NewTaskModalComponent {
 
   protected submit(): void {
     const trimmed = this.name().trim();
-    if (trimmed) this.create.emit({ name: trimmed, color: this.color() });
+    if (trimmed) this.create.emit({ name: trimmed, color: this.color(), parentTaskId: this.parentTaskId() });
   }
 }

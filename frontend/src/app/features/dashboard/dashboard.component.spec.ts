@@ -53,8 +53,8 @@ describe('DashboardComponent merge', () => {
     return fixture.componentInstance;
   }
 
-  const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z', color: TaskColor.Slate });
-  const entry = (taskId: string, minutes: number): DayEntry => ({ id: crypto.randomUUID(), date: localDateString(), taskId, taskName: '', minutes, taskColor: TaskColor.Slate });
+  const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z', color: TaskColor.Slate, parentTaskId: null });
+  const entry = (taskId: string, minutes: number): DayEntry => ({ id: crypto.randomUUID(), date: localDateString(), taskId, taskName: '', minutes, taskColor: TaskColor.Slate, parent: null });
 
   it('maps tasks with no entries to zero minutes', () => {
     const cmp = setup([task('a', 'Reading')], []);

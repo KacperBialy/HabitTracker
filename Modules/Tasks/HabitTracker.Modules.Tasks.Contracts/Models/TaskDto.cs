@@ -5,4 +5,5 @@ public sealed record TaskDto(
     Guid OwnerId,
     string Name,
     DateTimeOffset CreatedAt,
-    TaskColor Color);
+    TaskColor Color,
+    TaskId? ParentTaskId = null);

@@ -17,6 +17,14 @@ public static class TaskEndpoints
             return Results.Created($"/api/tasks/{dto.Id}", dto);
         });
 
+        group.MapPost("/{parentId:guid}/subtasks", async (Guid parentId, CreateSubtaskRequest request, ITaskService tasks, HttpContext http, CancellationToken ct) =>
+        {
+            var dto = await tasks.CreateSubtask(http.User.GetUserId(), new TaskId(parentId), request, ct);
+            return dto is null
+                ? Results.BadRequest("Parent task must exist, belong to you, and not itself be a subtask.")
+                : Results.Created($"/api/tasks/{dto.Id}", dto);
+        });
+
         group.MapGet("/", async (ITaskService tasks, HttpContext http, CancellationToken ct) =>
             Results.Ok(await tasks.ListForOwner(http.User.GetUserId(), ct)));
 

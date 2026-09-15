@@ -54,6 +54,7 @@ function entry(overrides: Partial<DayEntry>): DayEntry {
     taskName: 'Reading',
     minutes: 30,
     taskColor: TaskColor.Green,
+    parent: null,
     ...overrides,
   };
 }

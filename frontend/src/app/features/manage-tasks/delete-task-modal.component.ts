@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-/** Confirms permanent deletion of a task and all its time entries. */
+/** Confirms permanent deletion of a task and all its time entries (and cascaded subtasks). */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-delete-task-modal',
@@ -10,7 +10,13 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       <div class="box w-full max-w-80 p-4 shadow-[4px_6px_0_rgba(0,0,0,0.12)] sm:p-5" (click)="$event.stopPropagation()">
         <div class="display mb-3 text-xl">Delete task</div>
         <p class="text-sm">
-          Delete <span class="font-semibold">{{ taskName() }}</span> and all of its time entries?
+          @if (subtaskCount() > 0) {
+            Delete <span class="font-semibold">{{ taskName() }}</span>,
+            its {{ subtaskCount() }} {{ subtaskCount() === 1 ? 'subtask' : 'subtasks' }},
+            and all of their time entries?
+          } @else {
+            Delete <span class="font-semibold">{{ taskName() }}</span> and all of its time entries?
+          }
           This can't be undone.
         </p>
         <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -23,6 +29,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 })
 export class DeleteTaskModalComponent {
   readonly taskName = input('');
+  readonly subtaskCount = input(0);
   readonly confirm = output<void>();
   readonly cancel = output<void>();
 }

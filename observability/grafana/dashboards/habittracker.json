@@ -1631,6 +1631,78 @@
         }
       ],
       "description": "Share of time entries recorded by the stopwatch rather than typed in by hand."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "type": "piechart",
+      "id": 18,
+      "title": "Tasks created by kind (24h)",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 51
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (kind) (habittracker_tasks_created_total{job=\"habittracker\"} - (habittracker_tasks_created_total{job=\"habittracker\"} offset 24h or habittracker_tasks_created_total{job=\"habittracker\"} * 0))",
+          "legendFormat": "{{kind}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Share of tasks created as roots vs. subtasks, over the last 24 hours."
     }
   ],
   "refresh": "10s",

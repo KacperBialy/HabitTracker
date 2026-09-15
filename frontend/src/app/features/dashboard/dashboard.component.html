@@ -54,11 +54,23 @@
         @for (task of taskVms(); track task.id) {
           <app-task-row [name]="task.name"
                         [color]="task.color"
-                        [todayMinutes]="task.todayMinutes"
+                        [todayMinutes]="task.totalMinutes"
                         [isTracking]="task.id === activeTaskId()"
+                        [canAddSubtask]="true"
+                        (addSubtask)="openNewSubtask(task)"
                         (log)="openLog(task)"
                         (start)="startTimer(task)"
                         (stop)="stopTimer()" />
+          @for (child of task.children; track child.id) {
+            <app-task-row [name]="child.name"
+                          [color]="child.color"
+                          [todayMinutes]="child.ownMinutes"
+                          [isTracking]="child.id === activeTaskId()"
+                          [isSubtask]="true"
+                          (log)="openLog(child)"
+                          (start)="startTimer(child)"
+                          (stop)="stopTimer()" />
+          }
         }
       }
     </div>
@@ -87,13 +99,17 @@
   </div>
 </div>
 
-@if (showNewTask()) {
-  <app-new-task-modal (create)="createTask($event)" (cancel)="showNewTask.set(false)" />
+@if (showNewTask() || newTaskParent()) {
+  <app-new-task-modal
+    [parentTaskId]="newTaskParent()?.id ?? null"
+    [parentName]="newTaskParent()?.name ?? null"
+    (create)="createTask($event)"
+    (cancel)="closeNewTask()" />
 }
 
 @if (loggingTask(); as task) {
   <app-log-time-modal
-    [taskName]="task.name"
+    [taskName]="displayName(task)"
     [taskColor]="task.color"
     [today]="today()"
     [error]="logError()"

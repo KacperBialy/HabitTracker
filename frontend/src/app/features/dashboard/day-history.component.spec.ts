@@ -37,6 +37,7 @@ describe('DayHistoryComponent', () => {
     taskName,
     minutes,
     taskColor,
+    parent: null,
   });
 
   it('groups entries per day, newest day first', () => {

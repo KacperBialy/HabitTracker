@@ -19,12 +19,22 @@ internal sealed class TaskService(
     public async Task<TaskDto> Create(Guid ownerId, CreateTaskRequest request, CancellationToken ct = default)
     {
         var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow());
-        db.Tasks.Add(task);
-        await db.SaveChangesAsync(ct);
+        await Persist(ownerId, task, "root", ct);
+        return task.ToDto();
+    }
 
-        InvalidateOwnerCache(ownerId);
-        metrics.TaskCreated(request.Color.ToString());
+    public async Task<TaskDto?> CreateSubtask(Guid ownerId, TaskId parentTaskId, CreateSubtaskRequest request, CancellationToken ct = default)
+    {
+        var parent = await db.Tasks.AsNoTracking()
+            .Where(task => task.Id == parentTaskId && task.OwnerId == ownerId)
+            .Select(task => new { task.ParentTaskId })
+            .SingleOrDefaultAsync(ct);
 
+        if (parent is null || parent.ParentTaskId is not null)
+            return null;
+
+        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow(), parentTaskId);
+        await Persist(ownerId, task, "subtask", ct);
         return task.ToDto();
     }
 
@@ -64,13 +74,25 @@ internal sealed class TaskService(
         if (task is null)
             return false;
 
+        // Count only — loading children tracked would make EF issue client-side deletes on top of the DB cascade.
+        var cascadedChildren = await db.Tasks.CountAsync(child => child.ParentTaskId == id, ct);
+
         db.Tasks.Remove(task);
         await db.SaveChangesAsync(ct);
 
         InvalidateOwnerCache(ownerId);
-        metrics.TaskDeleted();
+        metrics.TaskDeleted(1 + cascadedChildren);
 
         return true;
+    }
+
+    private async Task Persist(Guid ownerId, TaskItem task, string kind, CancellationToken ct)
+    {
+        db.Tasks.Add(task);
+        await db.SaveChangesAsync(ct);
+
+        InvalidateOwnerCache(ownerId);
+        metrics.TaskCreated(task.Color.ToString(), kind);
     }
 
     private void InvalidateOwnerCache(Guid ownerId) 

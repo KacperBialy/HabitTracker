@@ -7,9 +7,11 @@ import { ActiveTimerService } from '../../core/active-timer.service';
 import { formatMinutes, localDateString } from '../../core/date-utils';
 import { DailyAggregate, DayEntry } from '../../core/models';
 import { TaskColor } from '../../core/task-colors';
+import { groupTasksByParent } from '../../core/task-tree';
+import { taskDisplayName } from '../../core/task-rollup';
 import { TimerRingComponent } from './timer-ring.component';
 import { TaskRowComponent } from './task-row.component';
-import { NewTaskModalComponent } from './new-task-modal.component';
+import { NewTaskModalComponent, NewTaskPayload } from './new-task-modal.component';
 import { LogTimeModalComponent, LogTimePayload } from './log-time-modal.component';
 import { ContributionsHeatmapComponent } from './contributions-heatmap.component';
 import { DayHistoryComponent } from './day-history.component';
@@ -17,11 +19,15 @@ import { TimePerTaskChartComponent } from './time-per-task-chart.component';
 import { TaskShareChartComponent } from './task-share-chart.component';
 import { TrendComparisonComponent } from './trend-comparison.component';
 
-interface TaskVm {
+export interface TaskVm {
   id: string;
   name: string;
-  todayMinutes: number;
   color: TaskColor;
+  parentTaskId: string | null;
+  parentName: string | null;
+  ownMinutes: number;
+  totalMinutes: number;
+  children: TaskVm[];
 }
 
 @Component({
@@ -51,6 +57,7 @@ export class DashboardComponent implements OnInit {
   protected readonly selectedHistoryDate = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly showNewTask = signal(false);
+  protected readonly newTaskParent = signal<TaskVm | null>(null);
   protected readonly loggingTask = signal<TaskVm | null>(null);
   protected readonly logError = signal('');
 
@@ -99,21 +106,55 @@ export class DashboardComponent implements OnInit {
       }
       this.historyEntries.set(entries);
       this.taskVms.set(
-        tasks.map((task) => ({
-          id: task.id,
-          name: task.name,
-          todayMinutes: minutesByTask.get(task.id) ?? 0,
-          color: task.color,
-        })),
+        groupTasksByParent(tasks).map((group) => {
+          const children = group.children.map((child) => {
+            const ownMinutes = minutesByTask.get(child.id) ?? 0;
+            return {
+              id: child.id,
+              name: child.name,
+              color: child.color,
+              parentTaskId: child.parentTaskId,
+              parentName: group.root.name,
+              ownMinutes,
+              totalMinutes: ownMinutes,
+              children: [],
+            };
+          });
+          const ownMinutes = minutesByTask.get(group.root.id) ?? 0;
+          return {
+            id: group.root.id,
+            name: group.root.name,
+            color: group.root.color,
+            parentTaskId: group.root.parentTaskId,
+            parentName: null,
+            ownMinutes,
+            totalMinutes: ownMinutes + children.reduce((sum, child) => sum + child.ownMinutes, 0),
+            children,
+          };
+        }),
       );
       this.heatmapDays.set([...lastYear.days, ...thisYear.days]);
       this.loading.set(false);
     });
   }
 
-  protected createTask(request: { name: string; color: TaskColor }): void {
-    this.tasks.create(request.name, request.color).subscribe(() => {
-      this.showNewTask.set(false);
+  protected openNewSubtask(parent: TaskVm): void {
+    this.showNewTask.set(false);
+    this.newTaskParent.set(parent);
+  }
+
+  protected closeNewTask(): void {
+    this.showNewTask.set(false);
+    this.newTaskParent.set(null);
+  }
+
+  protected createTask(payload: NewTaskPayload): void {
+    const created = payload.parentTaskId
+      ? this.tasks.createSubtask(payload.parentTaskId, payload.name, payload.color)
+      : this.tasks.create(payload.name, payload.color);
+
+    created.subscribe(() => {
+      this.closeNewTask();
       this.load();
     });
   }
@@ -146,7 +187,7 @@ export class DashboardComponent implements OnInit {
 
   /** Starts (or switches to) a timer for this task; reloads once any previous timer is logged. */
   protected startTimer(task: TaskVm): void {
-    this.timer.start(task.id, task.name).subscribe(() => this.load());
+    this.timer.start(task.id, taskDisplayName(task.name, task.parentName)).subscribe(() => this.load());
   }
 
   /** Stops the active timer, persists it, then reloads so taskVms reflect the new minutes. */
@@ -155,6 +196,10 @@ export class DashboardComponent implements OnInit {
       next: () => this.load(),
       error: () => this.logError.set('Could not save the timer. Please try again.'),
     });
+  }
+
+  protected displayName(task: TaskVm): string {
+    return taskDisplayName(task.name, task.parentName);
   }
 
   private formatElapsed(totalSeconds: number): string {

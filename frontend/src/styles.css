@@ -274,11 +274,40 @@ input[type="number"] {
 }
 
 .trend-task {
+  position: relative;
   display: grid;
   grid-template-columns: 12px minmax(90px, max-content) minmax(0, 380px) max-content 64px;
   align-items: center;
   gap: 12px;
   justify-content: start;
+}
+
+.trend-breakdown {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  left: 24px;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  padding: 8px 10px;
+  background: #2b2b2b;
+  color: #fbf9f4;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+.trend-task:hover .trend-breakdown,
+.trend-task:focus-within .trend-breakdown {
+  display: grid;
+  gap: 6px;
+}
+
+.trend-breakdown-line {
+  display: grid;
+  grid-template-columns: 12px 1fr max-content;
+  gap: 8px;
+  align-items: center;
 }
 
 .trend-dot {

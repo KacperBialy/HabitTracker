@@ -23,7 +23,7 @@ import {
 
 import { DayEntry } from '../../core/models';
 import { formatMinutes } from '../../core/date-utils';
-import { ChartRangeDays, buildStackedChartData } from './time-per-task-chart-data';
+import { ChartRangeDays, StackedChartDataset, buildStackedChartData } from './time-per-task-chart-data';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -74,6 +74,13 @@ function buildChartOptions(): ChartOptions<'bar'> {
         callbacks: {
           label: (context: TooltipItem<'bar'>) =>
             ` ${context.dataset.label}: ${formatMinutes(context.parsed.y ?? 0)}`,
+          afterBody: (items: TooltipItem<'bar'>[]) => {
+            const item = items[0];
+            if (!item) return [];
+            const lines = (item.dataset as StackedChartDataset).breakdownByDay?.[item.dataIndex] ?? [];
+            if (lines.length <= 1) return [];
+            return lines.map((line) => ` ${line.name}: ${formatMinutes(line.minutes)}`);
+          },
           footer: (items: TooltipItem<'bar'>[]) => {
             if (items.length < 2) return '';
             const totalMinutes = items.reduce((sum, item) => sum + (item.parsed.y ?? 0), 0);

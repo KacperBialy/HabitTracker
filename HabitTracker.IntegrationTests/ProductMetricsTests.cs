@@ -29,6 +29,7 @@ public sealed class ProductMetricsTests(ApiFactory factory)
 
         scrape.Should().Contain("habittracker_tasks_created_total");
         scrape.Should().Contain("color=\"Teal\"");
+        scrape.Should().Contain("kind=\"root\"");
         scrape.Should().Contain("habittracker_time_logs_created_total");
         scrape.Should().Contain("habittracker_tracked_minutes_total");
         scrape.Should().Contain("source=\"timer\"");
@@ -80,6 +81,47 @@ public sealed class ProductMetricsTests(ApiFactory factory)
 
         scrape.Should().Contain("habittracker_time_logs_deleted_total");
         scrape.Should().Contain("habittracker_tracked_deleted_minutes_total");
+    }
+
+    [Fact]
+    public async Task CreatingASubtaskIsTaggedAsKindSubtask()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+        var parent = await CreateTask(client, TaskColor.Green);
+
+        var create = await client.PostAsJsonAsync(
+            $"/api/tasks/{parent.Id}/subtasks", new CreateSubtaskRequest("Chapter", TaskColor.Violet));
+        create.EnsureSuccessStatusCode();
+
+        var scrape = await client.GetStringAsync("/api/metrics");
+
+        scrape.Should().Contain("kind=\"subtask\"");
+        scrape.Should().Contain("color=\"Violet\"");
+    }
+
+    [Fact]
+    public async Task DeletingAParentIncrementsTheDeletionCounterByParentPlusChildren()
+    {
+        var client = factory.ClientFor(Guid.NewGuid());
+        var before = CounterValue(await client.GetStringAsync("/api/metrics"), "habittracker_tasks_deleted_total");
+
+        var parent = await CreateTask(client, TaskColor.Slate);
+        await client.PostAsJsonAsync($"/api/tasks/{parent.Id}/subtasks", new CreateSubtaskRequest("Child A", TaskColor.Red));
+        await client.PostAsJsonAsync($"/api/tasks/{parent.Id}/subtasks", new CreateSubtaskRequest("Child B", TaskColor.Blue));
+
+        var deleted = await client.DeleteAsync($"/api/tasks/{parent.Id}");
+        deleted.EnsureSuccessStatusCode();
+
+        var after = CounterValue(await client.GetStringAsync("/api/metrics"), "habittracker_tasks_deleted_total");
+        (after - before).Should().Be(3);
+    }
+
+    private static double CounterValue(string scrape, string metricName)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            scrape, $@"^{System.Text.RegularExpressions.Regex.Escape(metricName)}(?:\{{[^}}]*\}})? ([0-9.]+)$",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        return match.Success ? double.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
     }
 
     private static async Task<TaskDto> CreateTask(HttpClient client, TaskColor color)

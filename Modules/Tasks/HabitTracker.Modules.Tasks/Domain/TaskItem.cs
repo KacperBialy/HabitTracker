@@ -7,13 +7,20 @@ internal sealed class TaskItem
 {
     private TaskItem() { }
 
-    private TaskItem(TaskId id, Guid ownerId, string name, TaskColor color, DateTimeOffset now)
+    private TaskItem(
+        TaskId id,
+        Guid ownerId,
+        string name,
+        TaskColor color,
+        DateTimeOffset now,
+        TaskId? parentTaskId)
     {
         Id = id;
         OwnerId = ownerId;
         Name = name;
         Color = color;
         CreatedAt = now;
+        ParentTaskId = parentTaskId;
     }
 
     public TaskId Id { get; private set; }
@@ -21,9 +28,17 @@ internal sealed class TaskItem
     public string Name { get; private set; } = string.Empty;
     public TaskColor Color { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+    public TaskId? ParentTaskId { get; private set; }
 
-    public static TaskItem Register(Guid ownerId, string name, TaskColor color, DateTimeOffset now) =>
-        new(TaskId.New(), ownerId, name, color, now);
+    public bool IsRoot => ParentTaskId is null;
+
+    public static TaskItem Register(
+        Guid ownerId,
+        string name,
+        TaskColor color,
+        DateTimeOffset now,
+        TaskId? parentTaskId = null) =>
+        new(TaskId.New(), ownerId, name, color, now, parentTaskId);
 
     public void Update(string name, TaskColor color)
     {
@@ -31,5 +46,5 @@ internal sealed class TaskItem
         Color = color;
     }
 
-    public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color);
+    public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color, ParentTaskId);
 }
