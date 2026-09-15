@@ -53,22 +53,49 @@ describe('DashboardComponent merge', () => {
     return fixture.componentInstance;
   }
 
-  const task = (id: string, name: string): Task => ({ id, name, createdAt: '2026-01-01T00:00:00Z', color: TaskColor.Slate, parentTaskId: null });
-  const entry = (taskId: string, minutes: number): DayEntry => ({ id: crypto.randomUUID(), date: localDateString(), taskId, taskName: '', minutes, taskColor: TaskColor.Slate, parent: null });
+  const task = (id: string, name: string, parentTaskId: string | null = null): Task => ({
+    id,
+    name,
+    createdAt: '2026-01-01T00:00:00Z',
+    color: TaskColor.Slate,
+    parentTaskId,
+  });
+  const entry = (taskId: string, minutes: number): DayEntry => ({
+    id: crypto.randomUUID(),
+    date: localDateString(),
+    taskId,
+    taskName: '',
+    minutes,
+    taskColor: TaskColor.Slate,
+    parent: null,
+  });
 
   it('maps tasks with no entries to zero minutes', () => {
     const cmp = setup([task('a', 'Reading')], []);
-    expect((cmp as any).taskVms()).toEqual([{ id: 'a', name: 'Reading', todayMinutes: 0, color: TaskColor.Slate }]);
+    expect((cmp as any).taskVms()).toEqual([
+      {
+        id: 'a',
+        name: 'Reading',
+        color: TaskColor.Slate,
+        parentTaskId: null,
+        parentName: null,
+        ownMinutes: 0,
+        totalMinutes: 0,
+        children: [],
+      },
+    ]);
   });
 
   it('attaches a single entry to its task', () => {
     const cmp = setup([task('a', 'Reading')], [entry('a', 24)]);
-    expect((cmp as any).taskVms()[0].todayMinutes).toBe(24);
+    expect((cmp as any).taskVms()[0].ownMinutes).toBe(24);
+    expect((cmp as any).taskVms()[0].totalMinutes).toBe(24);
   });
 
   it('sums multiple entries for the same task', () => {
     const cmp = setup([task('a', 'Reading')], [entry('a', 24), entry('a', 18)]);
-    expect((cmp as any).taskVms()[0].todayMinutes).toBe(42);
+    expect((cmp as any).taskVms()[0].ownMinutes).toBe(42);
+    expect((cmp as any).taskVms()[0].totalMinutes).toBe(42);
   });
 
   it('keeps minutes scoped to the right task', () => {
@@ -77,8 +104,23 @@ describe('DashboardComponent merge', () => {
       [entry('a', 10), entry('b', 45)],
     );
     const vms = (cmp as any).taskVms();
-    expect(vms.find((vm: any) => vm.id === 'a').todayMinutes).toBe(10);
-    expect(vms.find((vm: any) => vm.id === 'b').todayMinutes).toBe(45);
+    expect(vms.find((vm: any) => vm.id === 'a').ownMinutes).toBe(10);
+    expect(vms.find((vm: any) => vm.id === 'b').ownMinutes).toBe(45);
+  });
+
+  it('rolls child minutes into the parent total', () => {
+    const cmp = setup(
+      [task('p', 'Reading'), task('c', 'Chapter 1', 'p')],
+      [entry('p', 10), entry('c', 20)],
+    );
+    const parent = (cmp as any).taskVms()[0];
+    expect(parent.ownMinutes).toBe(10);
+    expect(parent.totalMinutes).toBe(30);
+    expect(parent.children).toHaveLength(1);
+    expect(parent.children[0].id).toBe('c');
+    expect(parent.children[0].parentName).toBe('Reading');
+    expect(parent.children[0].ownMinutes).toBe(20);
+    expect(parent.children[0].totalMinutes).toBe(20);
   });
 
   it('reloads and closes the modal after a successful log', () => {
