@@ -54,13 +54,24 @@ describe('TaskRowComponent actions', () => {
     const fixture = TestBed.createComponent(TaskRowComponent);
     fixture.componentRef.setInput('name', 'Workout');
     fixture.componentRef.setInput('subtaskCount', 2);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('[aria-expanded]') as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle.getAttribute('aria-label')).toBe('Expand Workout subtasks');
+    expect(fixture.nativeElement.textContent).toContain('2 sub');
+  });
+
+  it('marks the parent as expanded when requested', () => {
+    const fixture = TestBed.createComponent(TaskRowComponent);
+    fixture.componentRef.setInput('name', 'Workout');
+    fixture.componentRef.setInput('subtaskCount', 2);
     fixture.componentRef.setInput('expanded', true);
     fixture.detectChanges();
 
     const toggle = fixture.nativeElement.querySelector('[aria-expanded]') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(toggle.getAttribute('aria-label')).toBe('Collapse Workout subtasks');
-    expect(fixture.nativeElement.textContent).toContain('2 sub');
   });
 
   it('keeps parent actions on one row instead of wrapping', () => {

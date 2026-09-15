@@ -123,6 +123,19 @@ describe('DashboardComponent merge', () => {
     expect(parent.children[0].totalMinutes).toBe(20);
   });
 
+  it('starts parent tasks collapsed and toggles subtask visibility', () => {
+    const cmp = setup(
+      [task('p', 'Reading'), task('c', 'Chapter 1', 'p')],
+      [],
+    ) as any;
+
+    expect(cmp.expandedTaskIds().has('p')).toBe(false);
+    cmp.toggleSubtasks('p');
+    expect(cmp.expandedTaskIds().has('p')).toBe(true);
+    cmp.toggleSubtasks('p');
+    expect(cmp.expandedTaskIds().has('p')).toBe(false);
+  });
+
   it('reloads and closes the modal after a successful log', () => {
     const cmp = setup([task('a', 'Reading')], []) as any;
     cmp.openLog(cmp.taskVms()[0]);

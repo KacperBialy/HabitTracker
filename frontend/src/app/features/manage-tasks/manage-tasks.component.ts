@@ -75,7 +75,7 @@ export class ManageTasksComponent implements OnInit {
   protected readonly newTaskParent = signal<Task | null>(null);
   protected readonly editingTask = signal<Task | null>(null);
   protected readonly deletingTask = signal<Task | null>(null);
-  protected readonly collapsedTaskIds = signal<ReadonlySet<string>>(new Set());
+  protected readonly expandedTaskIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly taskGroups = computed(() => groupTasksByParent(this.taskList()));
 
@@ -127,13 +127,13 @@ export class ManageTasksComponent implements OnInit {
   }
 
   protected toggleSubtasks(taskId: string): void {
-    this.collapsedTaskIds.update((collapsedTaskIds) => {
-      const nextCollapsedTaskIds = new Set(collapsedTaskIds);
-      if (nextCollapsedTaskIds.has(taskId))
-        nextCollapsedTaskIds.delete(taskId);
+    this.expandedTaskIds.update((expandedTaskIds) => {
+      const nextExpandedTaskIds = new Set(expandedTaskIds);
+      if (nextExpandedTaskIds.has(taskId))
+        nextExpandedTaskIds.delete(taskId);
       else
-        nextCollapsedTaskIds.add(taskId);
-      return nextCollapsedTaskIds;
+        nextExpandedTaskIds.add(taskId);
+      return nextExpandedTaskIds;
     });
   }
 

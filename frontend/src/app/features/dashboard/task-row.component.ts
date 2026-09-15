@@ -65,7 +65,7 @@ export class TaskRowComponent {
   readonly isTracking = input(false);
   readonly isSubtask = input(false);
   readonly subtaskCount = input(0);
-  readonly expanded = input(true);
+  readonly expanded = input(false);
   readonly log = output<void>();
   readonly start = output<void>();
   readonly stop = output<void>();

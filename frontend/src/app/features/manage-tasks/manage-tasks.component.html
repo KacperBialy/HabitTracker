@@ -22,11 +22,11 @@
                 <button type="button"
                         class="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm
                                text-muted transition-colors hover:bg-black/5 hover:text-ink"
-                        [attr.aria-label]="(collapsedTaskIds().has(group.root.id) ? 'Expand ' : 'Collapse ') + group.root.name + ' subtasks'"
-                        [attr.aria-expanded]="!collapsedTaskIds().has(group.root.id)"
+                        [attr.aria-label]="(expandedTaskIds().has(group.root.id) ? 'Collapse ' : 'Expand ') + group.root.name + ' subtasks'"
+                        [attr.aria-expanded]="expandedTaskIds().has(group.root.id)"
                         (click)="toggleSubtasks(group.root.id)">
                   <svg class="h-3 w-3 transition-transform"
-                       [class.-rotate-90]="collapsedTaskIds().has(group.root.id)"
+                       [class.-rotate-90]="!expandedTaskIds().has(group.root.id)"
                        viewBox="0 0 12 12"
                        aria-hidden="true">
                     <path d="M2.5 4.25 6 7.5l3.5-3.25"
@@ -61,7 +61,7 @@
                       [attr.aria-label]="'Delete ' + group.root.name"
                       (click)="deletingTask.set(group.root)">Delete</button>
             </div>
-            @if (!collapsedTaskIds().has(group.root.id)) {
+            @if (expandedTaskIds().has(group.root.id)) {
               <div class="subtask-list">
                 @for (child of group.children; track child.id) {
                   <div class="subtask-branch">

@@ -83,11 +83,11 @@ describe('ManageTasksComponent', () => {
       task('child', 'Cycling', TaskColor.Slate, 'parent'),
     ]);
 
-    expect(cmp.collapsedTaskIds().has('parent')).toBe(false);
+    expect(cmp.expandedTaskIds().has('parent')).toBe(false);
     cmp.toggleSubtasks('parent');
-    expect(cmp.collapsedTaskIds().has('parent')).toBe(true);
+    expect(cmp.expandedTaskIds().has('parent')).toBe(true);
     cmp.toggleSubtasks('parent');
-    expect(cmp.collapsedTaskIds().has('parent')).toBe(false);
+    expect(cmp.expandedTaskIds().has('parent')).toBe(false);
   });
 
   it('updates the task, closes the modal, and reloads', () => {
