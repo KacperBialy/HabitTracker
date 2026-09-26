@@ -52,5 +52,5 @@ internal sealed class TaskItem
 
     public void MoveTo(int position) => Position = position;
 
-    public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color, ParentTaskId);
+    public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color, Position, ParentTaskId);
 }

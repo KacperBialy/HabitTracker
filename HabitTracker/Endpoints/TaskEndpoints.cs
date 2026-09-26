@@ -34,6 +34,14 @@ public static class TaskEndpoints
             return updated ? Results.NoContent() : Results.NotFound();
         });
 
+        group.MapPut("/order", async (ReorderTasksRequest request, ITaskService tasks, HttpContext http, CancellationToken ct) =>
+        {
+            var reordered = await tasks.Reorder(http.User.GetUserId(), request, ct);
+            return reordered
+                ? Results.NoContent()
+                : Results.BadRequest("orderedTaskIds must list every task in the group exactly once.");
+        });
+
         group.MapDelete("/{id:guid}", async (Guid id, ITaskService tasks, HttpContext http, CancellationToken ct) =>
         {
             var deleted = await tasks.Delete(http.User.GetUserId(), new TaskId(id), ct);

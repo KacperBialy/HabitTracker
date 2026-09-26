@@ -87,6 +87,29 @@ internal sealed class TaskService(
         return true;
     }
 
+    public async Task<bool> Reorder(Guid ownerId, ReorderTasksRequest request, CancellationToken ct = default)
+    {
+        var orderedTaskIds = request.OrderedTaskIds;
+        if (orderedTaskIds.Count == 0 || orderedTaskIds.Distinct().Count() != orderedTaskIds.Count)
+            return false;
+
+        var siblings = await db.Tasks
+            .Where(task => task.OwnerId == ownerId && task.ParentTaskId == request.ParentTaskId)
+            .ToDictionaryAsync(task => task.Id, ct);
+
+        if (siblings.Count != orderedTaskIds.Count || !orderedTaskIds.All(siblings.ContainsKey))
+            return false;
+
+        for (var index = 0; index < orderedTaskIds.Count; index++)
+            siblings[orderedTaskIds[index]].MoveTo(index);
+
+        await db.SaveChangesAsync(ct);
+
+        InvalidateOwnerCache(ownerId);
+
+        return true;
+    }
+
     private async Task<int> TopPosition(Guid ownerId, TaskId? parentTaskId, CancellationToken ct)
     {
         var lowest = await db.Tasks

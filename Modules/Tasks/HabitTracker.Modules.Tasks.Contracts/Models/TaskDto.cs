@@ -6,4 +6,5 @@ public sealed record TaskDto(
     string Name,
     DateTimeOffset CreatedAt,
     TaskColor Color,
+    int Position,
     TaskId? ParentTaskId = null);
