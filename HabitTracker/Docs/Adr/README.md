@@ -15,6 +15,7 @@ Accepted; to change a decision, write a new ADR that supersedes the old one.
 | [0007](0007-http-endpoints-in-host.md) | HTTP endpoints live in the host, not in modules | Accepted |
 | [0008](0008-same-origin-spa.md) | Angular SPA served same-origin by the host | Accepted |
 | [0009](0009-opentelemetry-metrics.md) | OpenTelemetry metrics with a Prometheus scrape endpoint | Accepted |
+| [0010](0010-task-ordering.md) | User-set task order via an int `Position` per sibling group | Accepted |
 
 ## Format
 
