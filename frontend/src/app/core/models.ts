@@ -7,6 +7,7 @@ export interface Task {
   createdAt: string;
   color: TaskColor;
   parentTaskId: string | null;
+  position: number;
 }
 
 /** Mirrors DayEntryParentDto — present on subtask logs, null on root-task logs. */

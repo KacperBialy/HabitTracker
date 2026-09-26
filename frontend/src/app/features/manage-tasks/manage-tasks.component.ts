@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 
 import { TasksService } from '../../core/tasks.service';
 import { ActiveTimerService } from '../../core/active-timer.service';
@@ -15,6 +16,9 @@ import { DeleteTaskModalComponent } from './delete-task-modal.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-manage-tasks',
   imports: [
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
     AppNavComponent,
     TaskColorHexPipe,
     NewTaskModalComponent,
@@ -63,6 +67,25 @@ import { DeleteTaskModalComponent } from './delete-task-modal.component';
       content: "";
       pointer-events: none;
     }
+
+    .drag-handle {
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .cdk-drag-preview {
+      box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
+      opacity: 0.95;
+    }
+
+    .cdk-drag-placeholder {
+      opacity: 0.3;
+    }
+
+    .cdk-drag-animating,
+    .cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+      transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+    }
   `,
 })
 export class ManageTasksComponent implements OnInit {
@@ -78,6 +101,7 @@ export class ManageTasksComponent implements OnInit {
   protected readonly expandedTaskIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly taskGroups = computed(() => groupTasksByParent(this.taskList()));
+  protected readonly rootTasks = computed(() => this.taskGroups().map((group) => group.root));
 
   ngOnInit(): void {
     this.load();
@@ -120,6 +144,27 @@ export class ManageTasksComponent implements OnInit {
       this.editingTask.set(null);
       this.load();
     });
+  }
+
+  /** Drops within one sibling group; the lists aren't connected, so a task never changes parent. */
+  protected drop(parentTaskId: string | null, siblings: Task[], event: CdkDragDrop<unknown>): void {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const orderedIds = siblings.map((sibling) => sibling.id);
+    moveItemInArray(orderedIds, event.previousIndex, event.currentIndex);
+
+    // Optimistic: renumber the group locally; taskGroups re-sorts from positions.
+    const positionById = new Map(orderedIds.map((id, position) => [id, position]));
+    this.taskList.update((tasks) =>
+      tasks.map((candidate) =>
+        positionById.has(candidate.id)
+          ? { ...candidate, position: positionById.get(candidate.id)! }
+          : candidate,
+      ),
+    );
+
+    // The server is the source of truth; on failure, drop the optimistic order.
+    this.tasks.reorder(parentTaskId, orderedIds).subscribe({ error: () => this.load() });
   }
 
   protected subtaskCountOf(task: Task): number {

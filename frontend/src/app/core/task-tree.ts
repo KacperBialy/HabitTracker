@@ -5,9 +5,13 @@ export interface TaskGroup {
   children: Task[];
 }
 
+/** Position ascending, newest first on ties — matches the server's ordering. */
+const byPosition = (left: Task, right: Task) =>
+  left.position - right.position || right.createdAt.localeCompare(left.createdAt);
+
 /**
- * Groups a flat task list into roots with their children.
- * Two-pass so children listed before their parent (createdAt desc) still nest.
+ * Groups a flat task list into roots with their children, each sorted by position.
+ * Independent of input order: children listed before their parent still nest.
  * A child whose parent is missing is promoted to a root.
  */
 export function groupTasksByParent(tasks: Task[]): TaskGroup[] {
@@ -25,8 +29,8 @@ export function groupTasksByParent(tasks: Task[]): TaskGroup[] {
     }
   }
 
-  return roots.map((root) => ({
+  return roots.sort(byPosition).map((root) => ({
     root,
-    children: childrenByParent.get(root.id) ?? [],
+    children: (childrenByParent.get(root.id) ?? []).sort(byPosition),
   }));
 }

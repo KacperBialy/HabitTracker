@@ -25,6 +25,11 @@ export class TasksService {
     return this.http.put<void>(`/api/tasks/${taskId}`, { name, color });
   }
 
+  /** `orderedTaskIds` is the full sibling list under `parentTaskId` (null = roots) in its new order. */
+  reorder(parentTaskId: string | null, orderedTaskIds: string[]): Observable<void> {
+    return this.http.put<void>('/api/tasks/order', { parentTaskId, orderedTaskIds });
+  }
+
   delete(taskId: string): Observable<void> {
     return this.http.delete<void>(`/api/tasks/${taskId}`);
   }
