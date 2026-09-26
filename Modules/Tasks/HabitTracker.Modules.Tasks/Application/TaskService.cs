@@ -18,7 +18,7 @@ internal sealed class TaskService(
 {
     public async Task<TaskDto> Create(Guid ownerId, CreateTaskRequest request, CancellationToken ct = default)
     {
-        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow());
+        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow(), await TopPosition(ownerId, null, ct));
         await Persist(ownerId, task, "root", ct);
         return task.ToDto();
     }
@@ -33,7 +33,7 @@ internal sealed class TaskService(
         if (parent is null || parent.ParentTaskId is not null)
             return null;
 
-        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow(), parentTaskId);
+        var task = TaskItem.Register(ownerId, request.Name, request.Color, clock.GetUtcNow(), await TopPosition(ownerId, parentTaskId, ct), parentTaskId);
         await Persist(ownerId, task, "subtask", ct);
         return task.ToDto();
     }
@@ -44,7 +44,8 @@ internal sealed class TaskService(
         {
             var entities = await db.Tasks.AsNoTracking()
                 .Where(task => task.OwnerId == ownerId)
-                .OrderByDescending(task => task.CreatedAt)
+                .OrderBy(task => task.Position)
+                .ThenByDescending(task => task.CreatedAt)
                 .ToListAsync(ct);
 
             return entities.Select(entity => entity.ToDto())
@@ -86,6 +87,17 @@ internal sealed class TaskService(
         return true;
     }
 
+    private async Task<int> TopPosition(Guid ownerId, TaskId? parentTaskId, CancellationToken ct)
+    {
+        var lowest = await db.Tasks
+            .Where(task => task.OwnerId == ownerId && task.ParentTaskId == parentTaskId)
+            .MinAsync(task => (int?)task.Position, ct);
+
+        return lowest is null
+            ? 0
+            : lowest.Value - 1;
+    }
+
     private async Task Persist(Guid ownerId, TaskItem task, string kind, CancellationToken ct)
     {
         db.Tasks.Add(task);
@@ -95,6 +107,6 @@ internal sealed class TaskService(
         metrics.TaskCreated(task.Color.ToString(), kind);
     }
 
-    private void InvalidateOwnerCache(Guid ownerId) 
-        => cache.Remove(TaskCacheKeys.TasksForOwner(ownerId));
+    private void InvalidateOwnerCache(Guid ownerId) =>
+        cache.Remove(TaskCacheKeys.TasksForOwner(ownerId));
 }

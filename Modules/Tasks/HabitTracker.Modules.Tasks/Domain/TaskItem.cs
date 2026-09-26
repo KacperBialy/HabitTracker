@@ -13,6 +13,7 @@ internal sealed class TaskItem
         string name,
         TaskColor color,
         DateTimeOffset now,
+        int position,
         TaskId? parentTaskId)
     {
         Id = id;
@@ -20,6 +21,7 @@ internal sealed class TaskItem
         Name = name;
         Color = color;
         CreatedAt = now;
+        Position = position;
         ParentTaskId = parentTaskId;
     }
 
@@ -29,6 +31,7 @@ internal sealed class TaskItem
     public TaskColor Color { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public TaskId? ParentTaskId { get; private set; }
+    public int Position { get; private set; }
 
     public bool IsRoot => ParentTaskId is null;
 
@@ -37,14 +40,17 @@ internal sealed class TaskItem
         string name,
         TaskColor color,
         DateTimeOffset now,
+        int position,
         TaskId? parentTaskId = null) =>
-        new(TaskId.New(), ownerId, name, color, now, parentTaskId);
+        new(TaskId.New(), ownerId, name, color, now, position, parentTaskId);
 
     public void Update(string name, TaskColor color)
     {
         Name = name;
         Color = color;
     }
+
+    public void MoveTo(int position) => Position = position;
 
     public TaskDto ToDto() => new(Id, OwnerId, Name, CreatedAt, Color, ParentTaskId);
 }

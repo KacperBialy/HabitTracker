@@ -30,6 +30,7 @@ internal sealed class TasksDbContext(DbContextOptions<TasksDbContext> options) :
             b.Property(t => t.Name).IsRequired().HasMaxLength(200);
             b.Property(t => t.Color).IsRequired().HasDefaultValue(TaskColor.Slate);
             b.Property(t => t.CreatedAt).IsRequired();
+            b.Property(task => task.Position).IsRequired();
 
             b.Property(task => task.ParentTaskId)
                 .HasConversion(
