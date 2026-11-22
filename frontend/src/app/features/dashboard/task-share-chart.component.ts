@@ -23,6 +23,7 @@ Chart.register(DoughnutController, ArcElement, Tooltip);
 const RANGE_OPTIONS: { days: DonutRangeDays; label: string }[] = [
   { days: 7, label: 'week' },
   { days: 30, label: 'month' },
+  { days: 365, label: 'year' },
 ];
 
 // Theme tokens from styles.css — canvas can't read Tailwind utilities.

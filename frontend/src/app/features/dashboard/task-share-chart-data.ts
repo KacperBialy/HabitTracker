@@ -10,8 +10,8 @@ import {
   rollupTaskName,
 } from '../../core/task-rollup';
 
-/** Donut windows: a rolling week and a rolling month, both ending today. */
-export type DonutRangeDays = 7 | 30;
+/** Donut windows: a rolling week, month and year, all ending today. */
+export type DonutRangeDays = 7 | 30 | 365;
 
 export interface DonutChartData {
   labels: string[];

@@ -115,6 +115,12 @@ describe('buildDonutChartData', () => {
     expect(buildDonutChartData(entries, 7).totalMinutes).toBe(0);
     expect(buildDonutChartData(entries, 30).totalMinutes).toBe(15);
   });
+
+  it('includes days the month window excludes when the range is a year', () => {
+    const entries = [entry({ date: addDaysLocal(today, -200), minutes: 45 })];
+    expect(buildDonutChartData(entries, 30).totalMinutes).toBe(0);
+    expect(buildDonutChartData(entries, 365).totalMinutes).toBe(45);
+  });
 });
 
 describe('TaskShareChartComponent', () => {
@@ -129,10 +135,10 @@ describe('TaskShareChartComponent', () => {
     return fixture;
   }
 
-  it('defaults to the week range with week/month pills', () => {
+  it('defaults to the week range with week/month/year pills', () => {
     const fixture = build([entry({})]);
     const pills = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.pill')];
-    expect(pills.map((pill) => pill.textContent?.trim())).toEqual(['week', 'month']);
+    expect(pills.map((pill) => pill.textContent?.trim())).toEqual(['week', 'month', 'year']);
     expect(pills.filter((pill) => pill.classList.contains('active')).map((pill) => pill.textContent?.trim())).toEqual([
       'week',
     ]);
@@ -150,6 +156,26 @@ describe('TaskShareChartComponent', () => {
 
     expect(monthPill.classList.contains('active')).toBe(true);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('15m');
+  });
+
+  it('compares the year window against the year before it', () => {
+    const today = localDateString();
+    const fixture = build([
+      entry({ date: addDaysLocal(today, -100), minutes: 120 }),
+      entry({ date: addDaysLocal(today, -500), minutes: 60 }),
+    ]);
+    const yearPill = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.pill')].find(
+      (pill) => pill.textContent?.trim() === 'year',
+    ) as HTMLElement;
+    yearPill.click();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('last 365 days');
+    expect(host.textContent).toContain('this year');
+    const delta = host.querySelector('.trend-task-delta.up') as HTMLElement;
+    expect(delta.textContent?.trim()).toBe('↑ 100%');
+    expect(delta.getAttribute('title')).toBe('↑ 100% vs last year');
   });
 
   it('renders a breakdown row per task with duration, share, and a new delta', () => {

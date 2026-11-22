@@ -130,12 +130,13 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
     // The rolling 365-day window can straddle the year boundary, so fetch this year and last
     // year and let the heatmap slice to the window (the aggregates endpoint is calendar-year).
-    // Entries cover the same two calendar years and feed both today's totals and the history.
+    // Entries feed today's totals, the history and the charts. They reach back one extra calendar
+    // year so Task share can compare a rolling year against the year before it.
     const currentYear = new Date().getFullYear();
     const today = this.today();
     forkJoin({
       tasks: this.tasks.list(),
-      entries: this.tasks.entries(`${currentYear - 1}-01-01`, `${currentYear}-12-31`),
+      entries: this.tasks.entries(`${currentYear - 2}-01-01`, `${currentYear}-12-31`),
       thisYear: this.tasks.yearAggregates(currentYear),
       lastYear: this.tasks.yearAggregates(currentYear - 1),
     }).subscribe(({ tasks, entries, thisYear, lastYear }) => {
